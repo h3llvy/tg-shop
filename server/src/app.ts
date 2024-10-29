@@ -1,6 +1,5 @@
 import express from 'express'
 import cors from 'cors'
-import mongoose from 'mongoose'
 import { giftRoutes } from './modules/gifts'
 import { userRoutes } from './modules/users'
 import { webhookRoutes } from './modules/telegram'
@@ -24,21 +23,6 @@ app.use(cors({
 
 app.use(express.json())
 
-const initDatabaseAsync = async (): Promise<void> => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Запуск в режиме разработки без базы данных')
-    return
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || '')
-    console.log('База данных подключена')
-  } catch (error) {
-    console.error('Ошибка подключения к базе данных:', error)
-    process.exit(1)
-  }
-}
-
 app.get('/', (_req, res) => {
   res.json({ message: 'Gift Shop API' })
 })
@@ -46,12 +30,7 @@ app.get('/', (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/gifts', giftRoutes)
 app.use('/api/users', userRoutes)
-app.use('/api/telegram', webhookRoutes)
-app.use('/api/payments', paymentRoutes)
+app.use('/api/webhook', webhookRoutes)
+app.use('/api/payment', paymentRoutes)
 
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Ошибка сервера:', err)
-  res.status(500).json({ error: 'Внутренняя ошибка сервера' })
-})
-
-export { app, initDatabaseAsync }
+export { app }
