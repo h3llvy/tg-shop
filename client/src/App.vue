@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { viewport, miniApp, useSignal } from '@telegram-apps/sdk-vue'
+import { viewport } from '@telegram-apps/sdk-vue'
 import { telegramService } from '@/shared/services/telegram/telegramService'
-import BottomNavigation from '@/shared/components/BottomNavigation.vue'
+import BottomNavigation from './shared/components/BottomNavigation.vue'
 
 // Получаем текущий маршрут
 const route = useRoute()

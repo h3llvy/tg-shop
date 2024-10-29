@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { CakeIcon, SparklesIcon } from '@heroicons/vue/24/outline'
-import { hapticFeedback, mainButton } from '@telegram-apps/sdk-vue'
-import type { IGift } from '@/types'
+import { hapticFeedback } from '@telegram-apps/sdk-vue'
+import type { IGift } from '@/modules/gifts/types/gift'
 import SendGiftModal from './SendGiftModal.vue'
 
-const props = defineProps<{
+defineProps<{
   gift: IGift
 }>()
 

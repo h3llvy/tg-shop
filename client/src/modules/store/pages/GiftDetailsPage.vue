@@ -3,7 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { mainButton, backButton, hapticFeedback } from '@telegram-apps/sdk-vue'
 import { GiftIcon } from '@heroicons/vue/24/outline'
-import type { IGift } from '../types/gift'
+import type { IGift } from '@/modules/gifts/types/gift'
+
+interface IGiftDetails extends IGift {
+  available?: number
+}
 
 interface IGiftAction {
   id: number
@@ -15,12 +19,13 @@ interface IGiftAction {
 const route = useRoute()
 const router = useRouter()
 
-const gift = ref<IGift>({
+const gift = ref<IGiftDetails>({
   id: route.params.id as string,
   name: 'Вкусный торт',
   price: 10,
   description: 'Купите этот подарок, чтобы подарить его другому пользователю.',
-  status: 'available'
+  status: 'available',
+  available: 100
 })
 
 const recentActions = ref<IGiftAction[]>([
@@ -56,7 +61,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   backButton.hide()
-  mainButton.hide()
+  mainButton.setParams({ isVisible: false })
 })
 </script>
 
@@ -70,7 +75,7 @@ onUnmounted(() => {
       {{ gift.name }}
     </h1>
     <p class="text-sm text-label-secondary-light dark:text-label-secondary-dark">
-      {{ gift.available }}
+      {{ gift.available ?? 'Нет в наличии' }}
     </p>
     
     <p class="mt-4 text-label-secondary-light dark:text-label-secondary-dark">

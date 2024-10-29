@@ -1,36 +1,32 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { 
   XMarkIcon, 
   CurrencyDollarIcon,
-  SparklesIcon,
-  CakeIcon
+  CakeIcon,
+  SparklesIcon
 } from '@heroicons/vue/24/outline'
 import { 
   mainButton, 
-  hapticFeedback,
-  miniApp,
-  useSignal 
+  hapticFeedback
 } from '@telegram-apps/sdk-vue'
-import type { IGift } from '@/types'
+import type { IGift } from '@/modules/gifts/types/gift'
 
 const props = defineProps<{
   gift: IGift
   onClose: () => void
 }>()
 
-const currentDate = new Date().toLocaleDateString()
+const currentDate = ref(new Date().toLocaleDateString())
 
-// Используем useSignal для отслеживания состояния кнопки
-const isMainButtonVisible = useSignal(mainButton.isVisible)
-const isMainButtonLoading = useSignal(mainButton.isLoaderVisible)
+const handleClose = () => {
+  props.onClose()
+}
 
 // Монтируем компоненты SDK
 onMounted(() => {
-  // Монтируем mainButton для работы с главной кнопкой
   mainButton.mount()
   
-  // Настраиваем главную кнопку
   mainButton.setParams({
     text: 'Send Gift to Contact',
     isVisible: true,
@@ -38,13 +34,9 @@ onMounted(() => {
     textColor: '#FFFFFF'
   })
   
-  // Обработчик клика по кнопке
   mainButton.onClick(() => {
-    // Тактильный отклик
     hapticFeedback.impactOccurred('medium')
     
-    // Используем нативный метод для открытия списка чатов
-    // так как в SDK нет соответствующего метода
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.switchInlineQuery(
         `gift_${props.gift.id}`,
@@ -54,19 +46,8 @@ onMounted(() => {
   })
 })
 
-// Очищаем при размонтировании
-onUnmounted(() => {
-  mainButton.unmount()
-})
-
-// Функция для определения иконки подарка
 const getGiftIcon = (name: string) => {
   return name.includes('Star') ? SparklesIcon : CakeIcon
-}
-
-const handleClose = () => {
-  hapticFeedback.impactOccurred('light')
-  props.onClose()
 }
 </script>
 

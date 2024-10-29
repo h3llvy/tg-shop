@@ -2,50 +2,42 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { GiftIcon } from '@heroicons/vue/24/outline'
-import type { IGift } from '../types/gift'
-
-interface IStoreGift extends IGift {
-  bgColor: string
-}
+import type { IStoreGift } from '../types/store'
 
 const router = useRouter()
 
 const gifts = ref<IStoreGift[]>([
   {
     id: '1',
-    name: 'Вкусный торт',
+    name: 'Delicious Cake',
+    description: 'A tasty cake for your friend',
     price: 10,
-    description: '',
-    status: 'available',
-    bgColor: 'bg-[#FFF3E0]',
-    available: '3 of 500'
+    available: 100,
+    bgColor: 'bg-accent-purple-light dark:bg-accent-purple-dark'
   },
   {
     id: '2',
-    name: 'Зеленая звезда',
-    price: 5,
+    name: 'Green Star',
     description: '',
-    status: 'available',
-    bgColor: 'bg-[#E8F5E9]',
-    available: '802 of 3K'
+    price: 5,
+    available: 802,
+    bgColor: 'bg-[#E8F5E9]'
   },
   {
     id: '3',
-    name: 'Синяя звезда',
-    price: 5,
+    name: 'Blue Star',
     description: '',
-    status: 'available',
-    bgColor: 'bg-[#E3F2FD]',
-    available: '458 of 5K'
+    price: 5,
+    available: 458,
+    bgColor: 'bg-[#E3F2FD]'
   },
   {
     id: '4',
-    name: 'Красная звезда',
-    price: 5,
+    name: 'Red Star',
     description: '',
-    status: 'available',
-    bgColor: 'bg-[#FCE4EC]',
-    available: '10K of 10K'
+    price: 5,
+    available: 10000,
+    bgColor: 'bg-[#FCE4EC]'
   }
 ])
 
