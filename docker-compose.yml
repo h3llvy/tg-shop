@@ -8,8 +8,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI}
+      - NODE_ENV=development
       - BOT_TOKEN=${BOT_TOKEN}
       - CRYPTO_PAY_API_TOKEN=${CRYPTO_PAY_API_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
@@ -36,7 +35,7 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - BOT_TOKEN=${BOT_TOKEN}
       - WEBHOOK_DOMAIN=${WEBHOOK_DOMAIN}
       - WEBHOOK_PATH=${WEBHOOK_PATH}
