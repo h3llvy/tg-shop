@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - CRYPTO_PAY_API_TOKEN=${CRYPTO_PAY_API_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - PUBLIC_URL=${PUBLIC_URL}
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_TELEGRAM_BOT_USERNAME=${VITE_TELEGRAM_BOT_USERNAME}
+      - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - BOT_TOKEN=${BOT_TOKEN}
+      - WEBHOOK_DOMAIN=${WEBHOOK_DOMAIN}
+      - WEBHOOK_PATH=${WEBHOOK_PATH}
+      - WEBAPP_URL=${WEBAPP_URL}
+      - SERVER_URL=${SERVER_URL}
+    depends_on:
+      - server
+    restart: unless-stopped
