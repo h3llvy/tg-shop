@@ -5,8 +5,8 @@ export interface IGift {
   name: string
   description: string
   price: number
+  imageUrl: string
   status: 'available' | 'purchased' | 'gifted'
-  available?: number
 }
 
 export interface IGiftHistory {

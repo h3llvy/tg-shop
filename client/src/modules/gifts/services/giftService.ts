@@ -6,6 +6,7 @@ const mockGifts: IGift[] = [
     name: 'Delicious Cake',
     description: 'A tasty cake for your friend',
     price: 10,
+    imageUrl: 'https://placehold.co/400x400/pink/white?text=Cake',
     status: 'available' as const
   },
   {
@@ -13,6 +14,7 @@ const mockGifts: IGift[] = [
     name: 'Red Star',
     description: 'A shiny red star',
     price: 5,
+    imageUrl: 'https://placehold.co/400x400/red/white?text=RedStar',
     status: 'available' as const
   },
   {
@@ -20,6 +22,7 @@ const mockGifts: IGift[] = [
     name: 'Green Star',
     description: 'A beautiful green star',
     price: 5,
+    imageUrl: 'https://placehold.co/400x400/green/white?text=GreenStar',
     status: 'available' as const
   },
   {
@@ -27,6 +30,7 @@ const mockGifts: IGift[] = [
     name: 'Blue Star',
     description: 'An amazing blue star',
     price: 5,
+    imageUrl: 'https://placehold.co/400x400/blue/white?text=BlueStar',
     status: 'available' as const
   },
   // Дублируем подарки для заполнения сетки
@@ -35,6 +39,9 @@ const mockGifts: IGift[] = [
     name: ['Delicious Cake', 'Red Star', 'Green Star', 'Blue Star'][i % 4],
     description: 'A wonderful gift',
     price: i % 2 ? 5 : 10,
+    imageUrl: `https://placehold.co/400x400/${
+      ['pink', 'red', 'green', 'blue'][i % 4]
+    }/white?text=Gift${i + 5}`,
     status: 'available' as const
   }))
 ]
