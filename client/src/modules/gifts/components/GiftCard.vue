@@ -11,7 +11,8 @@ defineProps<{
 
 const showModal = ref(false)
 
-const getGiftIcon = (name: string) => {
+const getGiftIcon = (name: string | undefined) => {
+  if (!name) return CakeIcon
   return name.includes('Star') ? SparklesIcon : CakeIcon
 }
 
@@ -33,6 +34,8 @@ const handleSendClick = () => {
   hapticFeedback.impactOccurred('medium')
   showModal.value = true
 }
+
+
 </script>
 
 <template>

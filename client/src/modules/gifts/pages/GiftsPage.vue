@@ -3,14 +3,18 @@ import { ref } from 'vue'
 import GiftCard from '../components/GiftCard.vue'
 import type { IGift } from '../types/gift'
 
-// Генерируем подарки с правильным типом status
+
 const gifts = ref<IGift[]>(Array.from({ length: 30 }, (_, i) => ({
   id: `${i + 1}`,
   name: ['Delicious Cake', 'Red Star', 'Green Star', 'Blue Star'][i % 4],
   description: 'A wonderful gift',
   price: i % 2 ? 5 : 10,
-  status: 'available' as const // Явно указываем литеральный тип
+  imageUrl: `https://placehold.co/400x400/${
+    ['pink', 'red', 'green', 'blue'][i % 4]
+  }/white?text=Gift${i + 1}`,
+  status: 'available' as const
 })))
+
 </script>
 
 <template>
