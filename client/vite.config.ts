@@ -1,19 +1,30 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
-    port: 3000,
-    host: true
+    host: true, // Важно для Docker
+    port: 3000
+  },
+  // Настройки для продакшн сборки
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    // Оптимизации для продакшена
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['vue', 'vue-router', 'pinia'],
+          'telegram': ['@telegram-apps/sdk-vue']
+        }
+      }
+    }
   }
 })
