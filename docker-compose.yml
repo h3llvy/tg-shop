@@ -8,9 +8,8 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI}
       - BOT_TOKEN=${BOT_TOKEN}
       - CRYPTO_PAY_API_TOKEN=${CRYPTO_PAY_API_TOKEN}
       - JWT_SECRET=${JWT_SECRET}

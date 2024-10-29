@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { PaymentController } from '../controllers/paymentController'
-import { authMiddleware } from '@/modules/auth/middleware/authMiddleware'
+import { authMiddleware } from '../../auth/middleware/authMiddleware'
 
 const router = Router()
 const controller = new PaymentController()

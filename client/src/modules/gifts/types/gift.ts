@@ -3,10 +3,10 @@ import type { IUser } from '@/shared/types/user'
 export interface IGift {
   id: string
   name: string
-  price: number
   description: string
-  imageUrl?: string
+  price: number
   status: 'available' | 'purchased' | 'gifted'
+  available?: number
 }
 
 export interface IGiftHistory {
