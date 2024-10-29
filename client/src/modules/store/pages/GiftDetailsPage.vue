@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { mainButton, backButton, hapticFeedback } from '@telegram-apps/sdk-vue'
+import { useRouter } from 'vue-router'
+import { mainButton, backButton, hapticFeedback, themeParams } from '@telegram-apps/sdk-vue'
 import { GiftIcon } from '@heroicons/vue/24/outline'
 import type { IGift } from '@/modules/gifts/types/gift'
 
@@ -16,16 +16,16 @@ interface IGiftAction {
   avatar: string
 }
 
-const route = useRoute()
 const router = useRouter()
 
 const gift = ref<IGiftDetails>({
-  id: route.params.id as string,
-  name: 'Вкусный торт',
-  price: 10,
-  description: 'Купите этот подарок, чтобы подарить его другому пользователю.',
+  id: '1',
+  name: 'Premium Gift',
+  price: 100,
+  description: 'A premium gift for special occasions',
   status: 'available',
-  available: 100
+  available: 5,
+  imageUrl: 'https://placehold.co/400x400/gold/white?text=PremiumGift'
 })
 
 const recentActions = ref<IGiftAction[]>([
@@ -47,21 +47,35 @@ const handleBuyClick = (): void => {
 }
 
 onMounted(() => {
+  // Сначала монтируем кнопки
+  mainButton.mount()
+  backButton.mount()
+  
+  // Затем показываем back button
   backButton.show()
   backButton.onClick(handleBackClick)
   
+  // Настраиваем main button
   mainButton.setParams({
     text: 'Купить подарок',
     isVisible: true,
     backgroundColor: '#007AFF',
     textColor: '#FFFFFF'
   })
+
   mainButton.onClick(handleBuyClick)
 })
 
 onUnmounted(() => {
+    mainButton.setParams({
+    text: 'Купить подарок',
+    isVisible: false,
+    backgroundColor: '#007AFF',
+    textColor: '#FFFFFF'
+  })
+  mainButton.unmount()
   backButton.hide()
-  mainButton.setParams({ isVisible: false })
+  backButton.unmount()
 })
 </script>
 
