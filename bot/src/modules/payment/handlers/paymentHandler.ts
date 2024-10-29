@@ -1,22 +1,34 @@
-import { Bot } from 'grammy'
-import { notifyPaymentSuccess } from '../services/notificationService'
+import { Context } from 'grammy'
 import { apiService } from '../../core/services/apiService'
+import { LoggerService } from '../../core/services/loggerService'
 
-export function setupPaymentHandlers(bot: Bot) {
-  bot.on(':successful_payment', async (ctx) => {  // Обратите внимание на двоеточие
+export class PaymentHandler {
+  private readonly p_logger: LoggerService
+
+  constructor() {
+    this.p_logger = new LoggerService()
+  }
+
+  public async handlePaymentAsync(ctx: Context): Promise<void> {
     try {
-      if (!ctx.message?.successful_payment) return
+      const paymentId = ctx.message?.successful_payment?.provider_payment_charge_id
+      
+      if (!paymentId) {
+        await ctx.reply('Не удалось получить ID платежа')
+        return
+      }
 
-      const payment = ctx.message.successful_payment
+      // Исправлено: verifyPayment -> verifyPaymentAsync
+      const isVerified = await apiService.verifyPaymentAsync(paymentId)
       
-      // Верифицируем платеж через наш сервер
-      await apiService.verifyPayment(payment.telegram_payment_charge_id)
-      
-      // Отправляем уведомление пользователю
-      await notifyPaymentSuccess(ctx, payment)
+      if (isVerified) {
+        await ctx.reply('Платеж успешно подтвержден!')
+      } else {
+        await ctx.reply('Не удалось подтвердить платеж')
+      }
     } catch (error) {
-      console.error('Ошибка при обработке платежа:', error)
-      await ctx.reply('Произошла ошибка при обработке платежа. Пожалуйста, обратитесь в поддержку.')
+      this.p_logger.logError(error as Error, 'PaymentHandler.handlePaymentAsync')
+      await ctx.reply('Произошла ошибка при обработке платежа')
     }
-  })
+  }
 }
