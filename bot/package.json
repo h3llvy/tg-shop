@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "webhook:set": "ts-node scripts/setWebhook.ts",
-    "webhook:delete": "ts-node scripts/deleteWebhook.ts"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "grammy": "^1.30.0",
