@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { mainButton, backButton, hapticFeedback, themeParams } from '@telegram-apps/sdk-vue'
+import { mainButton, backButton, hapticFeedback} from '@telegram-apps/sdk-vue'
 import { GiftIcon } from '@heroicons/vue/24/outline'
 import type { IGift } from '@/modules/gifts/types/gift'
 
