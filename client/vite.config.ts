@@ -10,14 +10,14 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // Важно для Docker
+    host: true,
     port: 3000
   },
-  // Настройки для продакшн сборки
+
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // Оптимизации для продакшена
+ 
     rollupOptions: {
       output: {
         manualChunks: {
