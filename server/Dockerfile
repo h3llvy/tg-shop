@@ -14,5 +14,4 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # Запуск сервера
-EXPOSE 4001
 CMD ["npm", "start"] 
