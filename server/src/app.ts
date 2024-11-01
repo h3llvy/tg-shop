@@ -11,7 +11,11 @@ const app = express()
 const ALLOWED_ORIGINS = [
   'https://local-tuna-client.ru.tuna.am',
   'http://localhost:3000',
-  'https://local-tuna-server.ru.tuna.am'
+  'https://local-tuna-server.ru.tuna.am',
+
+   // Production
+   'https://app.giftcrybot.ru',
+   'https://api.giftcrybot.ru'
 ]
 
 app.use(cors({
