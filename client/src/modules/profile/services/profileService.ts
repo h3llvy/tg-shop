@@ -3,7 +3,7 @@ import { telegramService } from '@/shared/services/telegram/telegramService'
 
 const API_URL = import.meta.env.VITE_API_URL
 console.log('API_URL')
-console.log('API_URL')
+console.log(API_URL)
 
 interface IProfileResponse {
   avatarUrl: string
