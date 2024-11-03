@@ -11,6 +11,8 @@ services:
       - mongodb_data:/data/db
     networks:
       - coolify
+    expose:
+      - "27017"
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
@@ -19,6 +21,7 @@ services:
       start_period: 40s
     labels:
       - coolify.managed=true
+    restart: unless-stopped
 
   redis:
     image: redis:alpine
@@ -27,13 +30,16 @@ services:
       - redis_data:/data
     networks:
       - coolify
+    expose:
+      - "6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     labels:
       - coolify.managed=true
+    restart: unless-stopped
 
   server:
     build:
@@ -45,19 +51,21 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=4000
+      - HOST=0.0.0.0
       - BOT_TOKEN=${BOT_TOKEN}
       - CRYPTO_PAY_API_TOKEN=${CRYPTO_PAY_API_TOKEN}
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - PUBLIC_URL=${PUBLIC_URL}
-      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/giftshop?authSource=admin
       - REDIS_URI=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     labels:
       - coolify.managed=true
       - traefik.enable=true
-      - "traefik.http.routers.server.rule=Host(`api.yourdomain.com`)"
-      - traefik.http.routers.server.entryPoints=http
+      - "traefik.http.routers.server.rule=Host(`api.giftcrybot.ru`)"
+      - traefik.http.routers.server.entryPoints=https
+      - traefik.http.routers.server.tls=true
     restart: unless-stopped
     networks:
       - coolify
@@ -83,8 +91,9 @@ services:
     labels:
       - coolify.managed=true
       - traefik.enable=true
-      - "traefik.http.routers.client.rule=Host(`app.yourdomain.com`)"
-      - traefik.http.routers.client.entryPoints=http
+      - "traefik.http.routers.client.rule=Host(`app.giftcrybot.ru`)"
+      - traefik.http.routers.client.entryPoints=https
+      - traefik.http.routers.client.tls=true
     depends_on:
       - server
     restart: unless-stopped
