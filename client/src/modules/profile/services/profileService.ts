@@ -1,12 +1,14 @@
 import axios from 'axios'
 import { telegramService } from '@/shared/services/telegram/telegramService'
-import dotenv from 'dotenv'
-
-dotenv.config()
 
 const API_URL = import.meta.env.VITE_API_URL
 console.log('API_URL')
 console.log(API_URL)
+
+if (!API_URL) {
+  console.error('VITE_API_URL не определен. Проверьте переменные окружения в Coolify.')
+  throw new Error('VITE_API_URL не определен')
+}
 
 interface IProfileResponse {
   avatarUrl: string

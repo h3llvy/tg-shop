@@ -31,7 +31,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-    - VITE_PORT=3000 
+      - VITE_PORT=3000 
       - VITE_API_URL=${VITE_API_URL}
       - VITE_TELEGRAM_BOT_USERNAME=${VITE_TELEGRAM_BOT_USERNAME}
       - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
