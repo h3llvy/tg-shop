@@ -31,7 +31,15 @@ export class DatabaseService {
       await this.logMongoDBInfo()
 
       // Подключение к Redis
-      this.p_redisClient = new Redis(this.p_config.redisUri)
+      this.p_redisClient = new Redis({
+        host: 'redis',
+        port: 6379,
+        password: this.p_config.redisPassword,
+        retryStrategy: (times) => {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        }
+      });
       
       this.p_redisClient.on('connect', () => {
         console.log('✅ Redis подключен успешно')

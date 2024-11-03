@@ -60,7 +60,7 @@ services:
       - MONGODB_URI=${MONGODB_URI}
       - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - REDIS_URI=redis://redis:6379
+      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     labels:
       - coolify.managed=true
