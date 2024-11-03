@@ -1,4 +1,4 @@
-import type { RouteRecordRaw } from 'vue-router/dist/vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { defineAsyncComponent } from 'vue'
 import LeaderboardSkeleton from '../components/LeaderboardSkeleton.vue'
 

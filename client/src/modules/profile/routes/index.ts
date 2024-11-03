@@ -1,7 +1,6 @@
-import type { RouteRecordRaw } from 'vue-router/dist/vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { defineAsyncComponent } from 'vue'
 import ProfileSkeleton from '../components/ProfileSkeleton.vue'
-
 
 export const profileRoutes: RouteRecordRaw[] = [
   {
@@ -11,6 +10,6 @@ export const profileRoutes: RouteRecordRaw[] = [
       loader: () => import('../pages/ProfilePage.vue'),
       loadingComponent: ProfileSkeleton
     }),
-    meta: { title: 'Profile' }
+    meta: { title: 'Профиль' }
   }
 ]

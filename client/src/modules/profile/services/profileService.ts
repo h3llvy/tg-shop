@@ -1,39 +1,31 @@
 import axios from 'axios'
-import { telegramService } from '@/shared/services/telegram/telegramService'
+import type { IUserProfile } from '@/shared/types/user'
 
-const API_URL = import.meta.env.VITE_API_URL
-console.log('API_URL')
-console.log(API_URL)
+export class ProfileService {
+  private readonly p_apiUrl: string
 
-if (!API_URL) {
-  console.error('VITE_API_URL не определен. Проверьте переменные окружения в Coolify.')
-  throw new Error('VITE_API_URL не определен')
-}
+  constructor() {
+    this.p_apiUrl = import.meta.env.VITE_API_URL
+  }
 
-interface IProfileResponse {
-  avatarUrl: string
-}
+  public async getUserProfileAsync(): Promise<IUserProfile> {
+    const { data } = await axios.get(`${this.p_apiUrl}/api/users/profile`)
+    return data
+  }
 
-export const profileService = {
-  async getUserAvatarAsync(): Promise<string | null> {
+  public async getUserAvatarAsync(): Promise<string | null> {
     try {
-      const user = telegramService.user
-      console.log('Текущий пользователь:', user)
-      
-      if (!user) {
-        throw new Error('Пользователь не авторизован')
-      }
-  
-      console.log('Отправка запроса на получение аватара для пользователя:', user.id)
-      const { data } = await axios.get<IProfileResponse>(`${API_URL}/api/users/me/avatar`, {
-        params: { userId: user.id }
-      })
-      console.log('Получен ответ с аватаром:', data)
-      
-      return data.avatarUrl
-    } catch (error) {
-      console.error('Ошибка при получении аватара:', error)
+      const { data } = await axios.get(`${this.p_apiUrl}/api/users/avatar`)
+      return data.url
+    } catch {
       return null
     }
   }
+
+  public async updateProfileAsync(_update: Partial<IUserProfile>): Promise<IUserProfile> {
+    const { data } = await axios.patch(`${this.p_apiUrl}/api/users/profile`, _update)
+    return data
+  }
 }
+
+export const profileService = new ProfileService()
