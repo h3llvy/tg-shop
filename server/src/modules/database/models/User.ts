@@ -39,7 +39,12 @@ const userSchema = new Schema<IUser>({
     default: Date.now
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'users'
 })
+
+userSchema.index({ telegramId: 1 }, { unique: true })
+userSchema.index({ username: 1 })
+userSchema.index({ lastActive: -1 })
 
 export const User = model<IUser>('User', userSchema) 
