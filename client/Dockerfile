@@ -24,7 +24,7 @@ ARG VITE_PUBLIC_URL
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_TELEGRAM_BOT_USERNAME=$VITE_TELEGRAM_BOT_USERNAME
 ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
-ENV PORT=3000
+
 
 # Собираем проект
 RUN npm run build
@@ -32,5 +32,4 @@ RUN npm run build
 # Устанавливаем serve для раздачи статики
 RUN npm install -g serve
 
-# Запускаем serve для раздачи статики, используя переменную окружения PORT
-CMD serve -s dist -l ${PORT}
+CMD ["serve", "-s", "dist", "-p", "3000"]
