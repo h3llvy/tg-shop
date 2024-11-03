@@ -6,6 +6,11 @@ export interface IAuthUser {
   language_code?: string
 }
 
+export interface IAuthResponse {
+  token: string
+  user: IAuthUser
+}
+
 export interface IInitDataPayload {
   user?: {
     id: number
@@ -16,9 +21,4 @@ export interface IInitDataPayload {
   }
   chat_instance?: string
   start_param?: string
-}
-
-export interface IAuthResponse {
-  token: string
-  user: IAuthUser
 } 
