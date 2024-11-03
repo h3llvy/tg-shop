@@ -1,12 +1,26 @@
 import 'dotenv/config'
 import { app } from './app'
+import { DatabaseService } from './modules/database/services/databaseService'
 
 const PORT = Number(process.env.PORT) || 4000
 const HOST = process.env.HOST || '0.0.0.0'
 
-app.listen(PORT, HOST, () => {
-  console.log(`Сервер запущен на http://${HOST}:${PORT}`)
-})
+async function startServerAsync() {
+  try {
+    // Подключаем базы данных
+    await DatabaseService.getInstance().connectAsync()
+
+    // Запускаем сервер
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 Сервер запущен на http://${HOST}:${PORT}`)
+    })
+  } catch (error) {
+    console.error('❌ Ошибка запуска сервера:', error)
+    process.exit(1)
+  }
+}
+
+startServerAsync()
 
 function validateEnvVariables() {
   const requiredVars = [

@@ -1,17 +1,17 @@
-FROM node:20-alpine
-
+# Базовый образ
+FROM node:20-alpine as base
 WORKDIR /app
-
-# Установка зависимостей для сборки
 COPY package*.json ./
+
+# Образ для разработки
+FROM base as development
 RUN npm install
-
-# Копирование исходного кода
 COPY . .
+CMD ["npm", "run", "dev"]
 
-# Сборка приложения
-ENV NODE_ENV=production
+# Образ для продакшена
+FROM base as production
+RUN npm install --production
+COPY . .
 RUN npm run build
-
-# Запуск бота
 CMD ["npm", "start"] 
