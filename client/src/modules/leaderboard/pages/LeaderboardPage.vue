@@ -8,6 +8,14 @@ import { telegramService } from '@/shared/services/telegram/telegramService'
 const CACHE_DURATION = 24 * 60 * 60 * 1000
 const MOCK_USERS_COUNT = 100
 
+const AVATAR_COLORS = [
+  'bg-blue-500',
+  'bg-green-500',
+  'bg-yellow-500',
+  'bg-red-500',
+  'bg-purple-500'
+]
+
 interface ICachedAvatar {
   url: string
   timestamp: number
@@ -36,6 +44,22 @@ const getMedal = (_position: number): string | null => {
   const MEDALS = ['🥇', '🥈', '🥉']
   return _position <= 3 ? MEDALS[_position - 1] : null
 }
+
+const getInitials = (_name: string): string => {
+  return _name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+}
+
+const getRandomColor = (_name: string): string => {
+  const index = _name
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return AVATAR_COLORS[index % AVATAR_COLORS.length]
+}
+
 
 const getCachedAvatarAsync = (_userId: string): string | null => {
   const cached = localStorage.getItem(`avatar_${_userId}`)
@@ -118,11 +142,25 @@ onMounted(async () => {
         class="h-[72px] px-4 py-3 flex items-center justify-between border-b border-[rgba(60,60,67,0.1)] dark:border-gray-800"
       >
         <div class="flex items-center">
-          <img 
-            :src="user.avatar" 
-            :alt="user.name"
-            class="w-12 h-12 rounded-full object-cover mr-3"
-          >
+          <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+            <img 
+              v-if="user.avatar" 
+              :src="user.avatar" 
+              :alt="user.name"
+              class="w-full h-full object-cover"
+            >
+            <div 
+              v-else 
+              :class="[
+                'w-full h-full flex items-center justify-center',
+                getRandomColor(user.name)
+              ]"
+            >
+              <span class="text-lg font-bold text-white">
+                {{ getInitials(user.name) }}
+              </span>
+            </div>
+          </div>
           <div>
             <div class="text-[17px] tracking-[-0.4px] font-medium text-gray-900 dark:text-white mb-1">
               {{ user.name }}
@@ -143,11 +181,25 @@ onMounted(async () => {
     <div class="fixed bottom-[49px] left-0 right-0 bg-white dark:bg-gray-900 border-t border-[rgba(60,60,67,0.1)] dark:border-gray-800">
       <div class="flex items-center h-[56px] px-4">
         <div class="flex items-center flex-1">
-          <img 
-            :src="currentUser.avatar" 
-            :alt="currentUser.name"
-            class="w-12 h-12 rounded-full object-cover mr-3"
-          >
+          <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
+            <img 
+              v-if="currentUser.avatar" 
+              :src="currentUser.avatar" 
+              :alt="currentUser.name"
+              class="w-full h-full object-cover"
+            >
+            <div 
+              v-else 
+              :class="[
+                'w-full h-full flex items-center justify-center',
+                getRandomColor(currentUser.name)
+              ]"
+            >
+              <span class="text-lg font-bold text-white">
+                {{ getInitials(currentUser.name) }}
+              </span>
+            </div>
+          </div>
           <div>
             <div class="flex items-center">
               <span class="text-[17px] tracking-[-0.4px] font-medium text-gray-900 dark:text-white">
