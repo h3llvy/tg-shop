@@ -19,35 +19,52 @@ export class DatabaseService {
   }
 
   public async connectAsync(): Promise<void> {
-    try {
-      // Подключение к MongoDB
-      await mongoose.connect(this.p_config.mongoUri, {
-        authSource: 'admin',
-        retryWrites: true,
-        w: 'majority'
-      })
+    const maxRetries = 5;
+    const retryDelay = 5000;
+    let retries = 0;
 
-      console.log('✅ MongoDB подключена успешно')
-      await this.logMongoDBInfo()
+    while (retries < maxRetries) {
+      try {
+        // Подключение к MongoDB
+        await mongoose.connect(this.p_config.mongoUri, {
+          authSource: 'admin',
+          retryWrites: true,
+          w: 'majority',
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 10000
+        })
 
-      // Подключение к Redis
-      this.p_redisClient = new Redis({
-        host: this.p_config.redisHost,
-        port: this.p_config.redisPort,
-        password: this.p_config.redisPassword
-      });
-      
-      this.p_redisClient.on('connect', () => {
+        console.log('✅ MongoDB подключена успешно')
+        await this.logMongoDBInfo()
+
+        // Подключение к Redis
+        this.p_redisClient = new Redis({
+          host: this.p_config.redisHost,
+          port: this.p_config.redisPort,
+          password: this.p_config.redisPassword,
+          retryStrategy: (times) => {
+            if (times > maxRetries) return null;
+            return Math.min(times * 1000, retryDelay);
+          },
+          maxRetriesPerRequest: 3
+        });
+
+        await new Promise((resolve, reject) => {
+          this.p_redisClient!.on('connect', resolve);
+          this.p_redisClient!.on('error', reject);
+        });
+
         console.log('✅ Redis подключен успешно')
-      })
+        return;
 
-      this.p_redisClient.on('error', (err) => {
-        console.error('❌ Ошибка Redis:', err)
-      })
-
-    } catch (error) {
-      console.error('❌ Ошибка подключения к базам данных:', error)
-      throw error
+      } catch (error) {
+        console.error(`❌ Попытка подключения ${retries + 1}/${maxRetries} не удалась:`, error)
+        retries++;
+        if (retries === maxRetries) {
+          throw new Error('Превышено максимальное количество попыток подключения');
+        }
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
     }
   }
 
