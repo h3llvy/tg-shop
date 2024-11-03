@@ -1,17 +1,19 @@
 FROM node:20-alpine
 
-WORKDIR /app
+# Добавить ARG для сборочных переменных
+ARG VITE_API_URL
+ARG VITE_TELEGRAM_BOT_USERNAME
+ARG VITE_PUBLIC_URL
 
-# Установка зависимостей для сборки
+# Сделать их доступными как ENV во время сборки
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_TELEGRAM_BOT_USERNAME=$VITE_TELEGRAM_BOT_USERNAME
+ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
+
+WORKDIR /app
 COPY package*.json ./
 RUN npm install
-
-# Копирование исходного кода
 COPY . .
-
-# Сборка приложения
-ENV NODE_ENV=production
 RUN npm run build
 
-# Запуск preview сервера
 CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
