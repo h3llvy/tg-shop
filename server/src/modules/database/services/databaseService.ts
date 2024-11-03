@@ -32,14 +32,9 @@ export class DatabaseService {
 
       // Подключение к Redis
       this.p_redisClient = new Redis({
-        host: 'redis',
-        port: 6379,
-        password: this.p_config.redisPassword,
-        retryStrategy: (times) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-        maxRetriesPerRequest: 3
+        host: this.p_config.redisHost,
+        port: this.p_config.redisPort,
+        password: this.p_config.redisPassword
       });
       
       this.p_redisClient.on('connect', () => {

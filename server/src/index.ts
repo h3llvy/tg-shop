@@ -30,7 +30,10 @@ function validateEnvVariables() {
     'BOT_TOKEN',
     'CRYPTO_PAY_API_TOKEN',
     'JWT_SECRET',
-    'MONGODB_URI'
+    'MONGODB_URI',
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_PASSWORD'
   ]
 
   const missingVars = requiredVars.filter(varName => !process.env[varName])
