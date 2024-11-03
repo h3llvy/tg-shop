@@ -10,6 +10,12 @@ const api = axios.create({
 })
 
 export const apiService = {
+  get: api.get,
+  post: api.post,
+  put: api.put,
+  patch: api.patch,
+  delete: api.delete,
+
   async verifyPaymentAsync(_paymentId: string): Promise<boolean> {
     const { data } = await api.post('/api/payments/verify', { paymentId: _paymentId })
     return data.verified

@@ -3,11 +3,13 @@ import type { Context } from 'grammy'
 import { GiftService } from '../services/giftService'
 import { NotificationService } from '../../notifications/services/notificationService'
 import { LoggerService } from '../../core/services/loggerService'
+import { UserService } from '../../users/services/userService'
 
 export function setupGiftHandlers(bot: HandlerBot): void {
   const giftService = new GiftService()
   const notificationService = new NotificationService()
   const logger = new LoggerService()
+  const userService = new UserService()
 
   bot.command('sendgift', async (ctx: Context) => {
     try {
@@ -44,6 +46,9 @@ export function setupGiftHandlers(bot: HandlerBot): void {
           fromUserId: userId.toString(),
           toUserId: targetUserId.toString()
         })
+
+        await userService.incrementGiftsSentAsync(userId)
+        await userService.incrementGiftsReceivedAsync(targetUserId)
 
         await notificationService.notifyGiftSentAsync(userId, ctx.from.first_name)
         await ctx.answerCallbackQuery('Подарок успешно отправлен!')
