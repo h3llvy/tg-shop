@@ -24,10 +24,13 @@ interface ICachedAvatar {
 const searchQuery = ref('')
 const users = ref<ILeaderboardUser[]>([])
 const currentUser = ref<ILeaderboardUser>({
-  id: '',
+  id: 0,
   name: '',
   avatar: '',
   giftsCount: 128,
+  giftsReceived: 0,
+  giftsSent: 0,
+  lastActive: new Date(),
   position: 0
 })
 
@@ -61,7 +64,7 @@ const getRandomColor = (_name: string): string => {
 }
 
 
-const getCachedAvatarAsync = (_userId: string): string | null => {
+const getCachedAvatarAsync = (_userId: number): string | null => {
   const cached = localStorage.getItem(`avatar_${_userId}`)
   if (!cached) return null
 
@@ -69,7 +72,7 @@ const getCachedAvatarAsync = (_userId: string): string | null => {
   return Date.now() - timestamp < CACHE_DURATION ? url : null
 }
 
-const cacheAvatarAsync = (_userId: string, _url: string): void => {
+const cacheAvatarAsync = (_userId: number, _url: string): void => {
   const cacheData: ICachedAvatar = {
     url: _url,
     timestamp: Date.now()
@@ -79,10 +82,13 @@ const cacheAvatarAsync = (_userId: string, _url: string): void => {
 
 const generateMockUsers = (): ILeaderboardUser[] => {
   return Array.from({ length: MOCK_USERS_COUNT }, (_, i) => ({
-    id: (i + 1).toString(),
+    id: i + 1,
     name: `User ${i + 1}`,
     avatar: `https://i.pravatar.cc/96?u=${i + 1}`,
-    giftsCount: Math.floor(Math.random() * 1000) + 100
+    giftsCount: Math.floor(Math.random() * 1000) + 100,
+    giftsReceived: Math.floor(Math.random() * 500),
+    giftsSent: Math.floor(Math.random() * 500),
+    lastActive: new Date()
   }))
 }
 
@@ -91,11 +97,13 @@ const initCurrentUserAsync = async (): Promise<void> => {
   if (!telegramUser) return
 
   currentUser.value = {
-    id: telegramUser.id.toString(),
+    id: telegramUser.id,
     name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
     giftsCount: 128,
-    position: 160,
-    avatar: ''
+    giftsReceived: 64,
+    giftsSent: 64,
+    lastActive: new Date(),
+    position: 160
   }
 
   const cachedUrl = getCachedAvatarAsync(currentUser.value.id)
