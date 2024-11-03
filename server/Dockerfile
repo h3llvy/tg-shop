@@ -14,7 +14,6 @@ FROM base as production
 # Устанавливаем все зависимости, включая devDependencies для сборки
 RUN npm install
 # Устанавливаем TypeScript глобально
-RUN npm install -g typescript
 COPY . .
 # Собираем проект
 RUN npm run build
