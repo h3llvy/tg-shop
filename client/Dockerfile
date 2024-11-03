@@ -11,7 +11,8 @@ CMD ["npm", "run", "dev"]
 
 # Образ для продакшена
 FROM base as production
-RUN npm install --production
+# Устанавливаем все зависимости (включая dev)
+RUN npm install
 COPY . .
 
 # Добавляем ARG для сборочных переменных
@@ -24,5 +25,8 @@ ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_TELEGRAM_BOT_USERNAME=$VITE_TELEGRAM_BOT_USERNAME
 ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 
+# Собираем проект
 RUN npm run build
+# Очищаем devDependencies
+RUN npm prune --production
 CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
