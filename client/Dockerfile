@@ -11,7 +11,7 @@ CMD ["npm", "run", "dev"]
 
 # Образ для продакшена
 FROM base as production
-# Устанавливаем все зависимости (включая dev)
+# Устанавливаем все зависимости
 RUN npm install
 COPY . .
 
@@ -27,6 +27,12 @@ ENV VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 
 # Собираем проект
 RUN npm run build
-# Очищаем devDependencies
-RUN npm prune --production
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
+
+# Устанавливаем serve для раздачи статики
+RUN npm install -g serve
+
+# Открываем порт
+EXPOSE 3000
+
+# Запускаем serve для раздачи статики
+CMD ["serve", "-s", "dist", "-l", "3000"]
