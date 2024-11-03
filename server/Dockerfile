@@ -11,7 +11,13 @@ CMD ["npm", "run", "dev"]
 
 # Образ для продакшена
 FROM base as production
-RUN npm install --production
+# Устанавливаем все зависимости, включая devDependencies для сборки
+RUN npm install
+# Устанавливаем TypeScript глобально
+RUN npm install -g typescript
 COPY . .
+# Собираем проект
 RUN npm run build
+# Удаляем devDependencies после сборки
+RUN npm prune --production
 CMD ["npm", "start"] 
