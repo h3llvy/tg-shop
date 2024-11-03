@@ -5,8 +5,9 @@ services:
     image: mongo:latest
     command: mongod --quiet --logpath /dev/null
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -57,7 +58,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - PUBLIC_URL=${PUBLIC_URL}
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/giftshop?authSource=admin
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
+      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - REDIS_URI=redis://redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     labels:
