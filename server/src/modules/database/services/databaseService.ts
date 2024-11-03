@@ -28,7 +28,7 @@ export class DatabaseService {
       })
 
       console.log('✅ MongoDB подключена успешно')
-      this.logMongoDBInfo()
+      await this.logMongoDBInfo()
 
       // Подключение к Redis
       this.p_redisClient = new Redis(this.p_config.redisUri)
@@ -49,6 +49,12 @@ export class DatabaseService {
 
   private async logMongoDBInfo(): Promise<void> {
     try {
+      // Проверяем, что соединение установлено
+      if (!mongoose.connection || !mongoose.connection.db) {
+        console.log('MongoDB информация недоступна - нет соединения')
+        return
+      }
+
       const adminDb = mongoose.connection.db.admin()
       const serverInfo = await adminDb.serverStatus()
       
@@ -56,6 +62,17 @@ export class DatabaseService {
       console.log(`Версия: ${serverInfo.version}`)
       console.log(`Подключения: ${serverInfo.connections.current} из ${serverInfo.connections.available}`)
       console.log(`Имя базы данных: ${mongoose.connection.name}`)
+
+      // Дополнительная проверка состояния
+      const state = mongoose.connection.readyState
+      console.log('Состояние подключения:', {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting',
+        99: 'uninitialized'
+      }[state])
+
     } catch (error) {
       console.error('Ошибка получения информации о MongoDB:', error)
     }
@@ -63,5 +80,10 @@ export class DatabaseService {
 
   public getRedisClient(): Redis | undefined {
     return this.p_redisClient
+  }
+
+  // Добавляем метод для проверки состояния подключения
+  public isConnected(): boolean {
+    return mongoose.connection.readyState === 1 && !!this.p_redisClient
   }
 } 
