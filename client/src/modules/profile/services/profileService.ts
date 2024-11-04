@@ -3,9 +3,11 @@ import type { IUserProfile } from '@/shared/types/user'
 
 export class ProfileService {
   private readonly p_apiUrl: string
+  private readonly p_botUrl: string
 
   constructor() {
     this.p_apiUrl = import.meta.env.VITE_API_URL
+    this.p_botUrl = import.meta.env.VITE_BOT_API_URL
   }
 
   public async getUserProfileAsync(): Promise<IUserProfile> {
@@ -13,10 +15,17 @@ export class ProfileService {
     return data
   }
 
-  public async getUserAvatarAsync(): Promise<string | null> {
+  public async getUserAvatarAsync(userId: number): Promise<string | null> {
     try {
-      const { data } = await axios.get(`${this.p_apiUrl}/api/users/avatar`)
-      return data.url
+      // Сначала пробуем получить через бота
+      const { data } = await axios.get(`${this.p_botUrl}/api/users/avatar/${userId}`)
+      if (data.url) {
+        return data.url
+      }
+
+      // Если не получилось, пробуем через сервер
+      const serverResponse = await axios.get(`${this.p_apiUrl}/api/users/me/avatar`)
+      return serverResponse.data.url
     } catch {
       return null
     }

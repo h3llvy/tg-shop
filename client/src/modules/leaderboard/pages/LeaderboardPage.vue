@@ -106,14 +106,8 @@ const initCurrentUserAsync = async (): Promise<void> => {
     position: 160
   }
 
-  const cachedUrl = getCachedAvatarAsync(currentUser.value.id)
-  if (cachedUrl) {
-    currentUser.value.avatar = cachedUrl
-    return
-  }
-
   try {
-    const avatarUrl = await profileService.getUserAvatarAsync()
+    const avatarUrl = await profileService.getUserAvatarAsync(currentUser.value.id)
     if (avatarUrl) {
       currentUser.value.avatar = avatarUrl
       cacheAvatarAsync(currentUser.value.id, avatarUrl)
