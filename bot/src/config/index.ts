@@ -11,6 +11,7 @@ interface IConfig {
   enableWebhook: boolean
   enablePolling: boolean
   apiUrl: string
+  MONGODB_URI: string
 }
 
 const getEnvironmentConfig = () => {
@@ -21,6 +22,7 @@ export const config: IConfig = {
   BOT_TOKEN: process.env.BOT_TOKEN || '',
   WEBAPP_URL: process.env.WEBAPP_URL || 'https://local-tuna-client.ru.tuna.am',
   SERVER_URL: process.env.SERVER_URL || 'https://local-tuna-server.ru.tuna.am',
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/giftshop',
   WEBHOOK_DOMAIN: process.env.WEBHOOK_DOMAIN || 'https://local-tuna-server.ru.tuna.am',
   WEBHOOK_PATH: process.env.WEBHOOK_PATH || '/api/telegram/webhook',
   ...getEnvironmentConfig()
