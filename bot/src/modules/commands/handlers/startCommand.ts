@@ -1,11 +1,11 @@
-import { Bot as HandlerBot, Context } from 'grammy'
+import type { HandlerBot, BotContext } from '../../../types/bot'
 import { apiService } from '../../core/services/apiService'
 import { LoggerService } from '../../core/services/loggerService'
 
 export const setupStartCommand = (bot: HandlerBot): void => {
   const logger = new LoggerService()
 
-  bot.command('start', async (ctx: Context) => {
+  bot.command('start', async (ctx: BotContext) => {
     try {
       if (!ctx.from) {
         await ctx.reply('Ошибка: не удалось получить данные пользователя')
@@ -20,6 +20,12 @@ export const setupStartCommand = (bot: HandlerBot): void => {
         username: ctx.from.username || undefined,
         languageCode: ctx.from.language_code || undefined
       })
+
+      // Устанавливаем начальное состояние сессии
+      ctx.session = {
+        step: 'idle',
+        giftData: null
+      }
 
       logger.logInfo('Пользователь создан/обновлен:', { telegramId: ctx.from.id })
       

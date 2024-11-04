@@ -1,13 +1,13 @@
 import { Bot, session } from 'grammy'
+import type { BotContext, SessionData } from '../../types/bot'
 import { setupCommandHandlers } from '../commands/handlers'
 import { setupGiftHandlers } from '../gifts/handlers/giftHandlers'
 import { setupPaymentHandlers } from '../payment/handlers'
 import { setupWebAppHandlers } from '../webapp/handlers/webAppHandlers'
 import { setupInlineHandlers } from '../inline/handlers/inlineHandler'
 import { LoggerService } from './services/loggerService'
-import type { BotContext, SessionData, HandlerBot } from '../../types/bot'
 
-export const setupBot = (bot: Bot<BotContext>): HandlerBot => {
+export const setupBot = (bot: Bot<BotContext>): Bot<BotContext> => {
   const logger = new LoggerService()
 
   bot.use(
@@ -19,25 +19,15 @@ export const setupBot = (bot: Bot<BotContext>): HandlerBot => {
     })
   )
 
-  setupCommandHandlers(bot as HandlerBot)
-  setupGiftHandlers(bot as HandlerBot)
-  setupPaymentHandlers(bot as HandlerBot)
-  setupWebAppHandlers(bot as HandlerBot)
-  setupInlineHandlers(bot as HandlerBot)
+  setupCommandHandlers(bot)
+  setupGiftHandlers(bot)
+  setupPaymentHandlers(bot)
+  setupWebAppHandlers(bot)
+  setupInlineHandlers(bot)
 
-  bot.hears(/^\/[a-zA-Z0-9_]+$/, async (ctx) => {
-    const commandText = ctx.message?.text
-    const userId = ctx.from?.id
-    const username = ctx.from?.username
-
-    logger.logWarning('Получена неизвестная команда:', {
-      command: commandText,
-      userId,
-      username
-    })
-
-    await ctx.reply('Неизвестная команда. Используйте /help для списка доступных команд.')
+  bot.catch((err) => {
+    logger.logError('Ошибка бота:', err)
   })
 
-  return bot as HandlerBot
+  return bot
 }

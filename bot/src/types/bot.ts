@@ -1,14 +1,16 @@
-import { Bot, Context, SessionFlavor } from 'grammy'
+import type { Context, SessionFlavor } from 'grammy'
+import type { Bot } from 'grammy'
 
 export interface SessionData {
-  step: string;
-  giftData: any | null;
+  step: 'idle' | 'awaiting_gift' | 'awaiting_recipient'
+  giftData: {
+    id?: string
+    recipientId?: number
+  } | null
 }
 
-export type BotContext = Context & SessionFlavor<SessionData>;
-
-// Экспортируем тип для обработчиков
-export type HandlerBot = Bot<BotContext>;
+export type BotContext = Context & SessionFlavor<SessionData>
+export type HandlerBot = Bot<BotContext>
 
 export interface IBotConfig {
   token: string
