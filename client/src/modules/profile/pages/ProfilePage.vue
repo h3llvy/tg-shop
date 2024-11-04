@@ -113,7 +113,10 @@ const cacheAvatarAsync = (_userId: number, _url: string): void => {
 
 const initUserProfileAsync = async (): Promise<void> => {
   const telegramUser = telegramService.user
-  if (!telegramUser) return
+  if (!telegramUser) {
+    console.error('Не удалось получить данные пользователя Telegram')
+    return
+  }
 
   user.value = {
     id: telegramUser.id,
@@ -130,7 +133,10 @@ const initUserProfileAsync = async (): Promise<void> => {
 
   try {
     avatarLoading.value = true
+    console.log('Запрашиваем аватар для пользователя:', user.value.id)
     const url = await profileService.getUserAvatarAsync(user.value.id)
+    console.log('Получен URL аватара:', url)
+    
     if (url) {
       avatarUrl.value = url
       cacheAvatarAsync(user.value.id, url)
