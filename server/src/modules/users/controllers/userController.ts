@@ -40,9 +40,9 @@ export class UserController {
 
   public async getUserAvatarAsync(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id
-      if (!userId) {
-        res.status(401).json({ error: 'Не авторизован' })
+      const userId = parseInt(req.params.userId)
+      if (isNaN(userId)) {
+        res.status(400).json({ error: 'Неверный ID пользователя' })
         return
       }
 
