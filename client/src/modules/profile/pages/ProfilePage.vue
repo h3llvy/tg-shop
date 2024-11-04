@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { profileService } from '../services/profileService'
+import { profileService } from '@/modules/profile/services/profileService'
 import { telegramService } from '@/shared/services/telegram/telegramService'
 import { 
   SunIcon, 
@@ -11,11 +11,9 @@ import {
   ClockIcon
 } from '@heroicons/vue/24/outline'
 
-interface IUserProfile {
-  id: string
-  name: string
-  giftsReceived: number
-  isPremium: boolean
+interface ICachedAvatar {
+  url: string
+  timestamp: number
 }
 
 interface IGiftFrom {
@@ -28,11 +26,6 @@ interface IProfileGift {
   from: IGiftFrom
   count: string
   name: string
-}
-
-interface ICachedAvatar {
-  url: string
-  timestamp: number
 }
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000
@@ -50,8 +43,8 @@ const avatarUrl = ref('')
 const avatarLoading = ref(false)
 const avatarError = ref(false)
 
-const user = ref<IUserProfile>({
-  id: '',
+const user = ref({
+  id: 0,
   name: '',
   giftsReceived: 128,
   isPremium: false
@@ -66,6 +59,24 @@ const gifts = ref<IProfileGift[]>([
     },
     count: '1 of 10K',
     name: 'Green Star'
+  },
+  {
+    id: '2',
+    from: {
+      name: 'Bob',
+      avatar: 'https://i.pravatar.cc/40?u=2'
+    },
+    count: '2 of 10K',
+    name: 'Red Star'
+  },
+  {
+    id: '3',
+    from: {
+      name: 'Charlie',
+      avatar: 'https://i.pravatar.cc/40?u=3'
+    },
+    count: '3 of 10K',
+    name: 'Blue Star'
   }
 ])
 
@@ -84,7 +95,7 @@ const getRandomColor = (_name: string): string => {
   return AVATAR_COLORS[index % AVATAR_COLORS.length]
 }
 
-const getCachedAvatarAsync = (_userId: string): string | null => {
+const getCachedAvatarAsync = (_userId: number): string | null => {
   const cached = localStorage.getItem(`avatar_${_userId}`)
   if (!cached) return null
 
@@ -92,7 +103,7 @@ const getCachedAvatarAsync = (_userId: string): string | null => {
   return Date.now() - timestamp < CACHE_DURATION ? url : null
 }
 
-const cacheAvatarAsync = (_userId: string, _url: string): void => {
+const cacheAvatarAsync = (_userId: number, _url: string): void => {
   const cacheData: ICachedAvatar = {
     url: _url,
     timestamp: Date.now()
@@ -105,7 +116,7 @@ const initUserProfileAsync = async (): Promise<void> => {
   if (!telegramUser) return
 
   user.value = {
-    id: telegramUser.id.toString(),
+    id: telegramUser.id,
     name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
     giftsReceived: 128,
     isPremium: false
@@ -119,7 +130,7 @@ const initUserProfileAsync = async (): Promise<void> => {
 
   try {
     avatarLoading.value = true
-    const url = await profileService.getUserAvatarAsync()
+    const url = await profileService.getUserAvatarAsync(user.value.id)
     if (url) {
       avatarUrl.value = url
       cacheAvatarAsync(user.value.id, url)
@@ -147,7 +158,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-bg-primary-dark">
+  <div class="min-h-screen bg-white dark:bg-gray-900">
     <div class="px-4 py-3 flex items-center justify-between">
       <div class="bg-bg-primary-light dark:bg-bg-primary-dark rounded-full flex items-center p-0.5">
         <button 
