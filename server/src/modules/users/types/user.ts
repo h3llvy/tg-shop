@@ -1,5 +1,5 @@
 export interface IUserAvatar {
-  avatarUrl: string | null
+  url: string | null
 }
 
 export interface IUserResponse {

@@ -1,38 +1,55 @@
 import { Request, Response } from 'express'
-import { UserService } from '../services/userService'
+import { UserRepository } from '../../database/repositories/userRepository'
+import { LoggerService } from '../../core/services/loggerService'
+import { TelegramService } from '../services/telegramService'
 
 export class UserController {
-  private readonly p_userService: UserService
+  private readonly p_userRepository: UserRepository
+  private readonly p_logger: LoggerService
+  private readonly p_telegramService: TelegramService
 
   constructor() {
-    this.p_userService = new UserService()
+    this.p_userRepository = new UserRepository()
+    this.p_logger = new LoggerService()
+    this.p_telegramService = new TelegramService()
+  }
+
+  public async createUserAsync(req: Request, res: Response): Promise<void> {
+    try {
+      const { telegramId } = req.body
+
+      let user = await this.p_userRepository.findByTelegramIdAsync(telegramId)
+
+      if (!user) {
+        user = await this.p_userRepository.createAsync(req.body)
+        this.p_logger.logInfo('Создан новый пользователь:', { telegramId })
+      } else {
+        user = await this.p_userRepository.updateAsync(telegramId, {
+          ...req.body,
+          lastActive: new Date()
+        })
+        this.p_logger.logInfo('Обновлен пользователь:', { telegramId })
+      }
+
+      res.json(user)
+    } catch (error) {
+      this.p_logger.logError('Ошибка создания/обновления пользователя:', error)
+      res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+    }
   }
 
   public async getUserAvatarAsync(req: Request, res: Response): Promise<void> {
     try {
-      const userId = Number(req.query.userId)
-      console.log('Получен запрос на загрузку аватара для пользователя:', userId)
-      
+      const userId = req.user?.id // Получаем из JWT токена
       if (!userId) {
-        console.log('ID пользователя не указан в запросе')
-        res.status(400).json({ error: 'Не указан ID пользователя' })
+        res.status(401).json({ error: 'Не авторизован' })
         return
       }
-  
-      console.log('Запрос аватара из UserService...')
-      const { avatarUrl } = await this.p_userService.getUserAvatarAsync(userId)
-      console.log('Получен ответ от UserService:', { avatarUrl })
-      
-      if (!avatarUrl) {
-        console.log('Аватар не найден для пользователя:', userId)
-        res.status(404).json({ error: 'Аватар не найден' })
-        return
-      }
-  
-      console.log('Успешно отправлен аватар для пользователя:', userId)
-      res.json({ avatarUrl })
+
+      const avatarUrl = await this.p_telegramService.getUserAvatarUrlAsync(userId)
+      res.json({ url: avatarUrl })
     } catch (error) {
-      console.error('Ошибка при получении аватара:', error)
+      this.p_logger.logError('Ошибка получения аватара:', error)
       res.status(500).json({ error: 'Не удалось получить аватар' })
     }
   }

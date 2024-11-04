@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { giftRoutes } from './modules/gifts'
-import { userRoutes } from './modules/users'
+import { userRoutes } from './modules/users/routes/userRoutes'
 import { webhookRoutes } from './modules/telegram'
 import { authRoutes } from './modules/auth'
 import { paymentRoutes } from './modules/payment'
