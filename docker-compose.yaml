@@ -119,6 +119,7 @@ services:
       - WEBHOOK_PATH=${WEBHOOK_PATH}
       - WEBAPP_URL=${WEBAPP_URL}
       - SERVER_URL=${SERVER_URL}
+      - SUPPORT_CHAT_ID=${SUPPORT_CHAT_ID}
     labels:
       - coolify.managed=true
     depends_on:
