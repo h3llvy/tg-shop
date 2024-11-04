@@ -1,6 +1,6 @@
 import type { IUser } from '../types/user'
 import { User } from '../models/User'
-import { LoggerService } from '@/modules/core/services/loggerService'
+import { LoggerService } from '../../core/services/loggerService'
 
 export class UserRepository {
   private readonly p_logger: LoggerService

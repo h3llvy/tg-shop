@@ -11,12 +11,10 @@ CMD ["npm", "run", "dev"]
 
 # Образ для продакшена
 FROM base as production
-# Устанавливаем все зависимости, включая devDependencies для сборки
 RUN npm install
-# Устанавливаем TypeScript глобально
 COPY . .
-# Собираем проект
 RUN npm run build
-# Удаляем devDependencies после сборки
-RUN npm prune --production
-CMD ["npm", "start"] 
+# Копируем package.json с _moduleAliases
+COPY package.json ./dist/
+RUN cd dist && npm install --production
+CMD ["node", "dist/index.js"] 

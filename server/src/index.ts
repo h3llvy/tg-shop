@@ -1,3 +1,4 @@
+import 'module-alias/register'
 import 'dotenv/config'
 import { app } from './app'
 import { DatabaseService } from './modules/database/services/databaseService'
