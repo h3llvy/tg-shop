@@ -9,7 +9,7 @@ const controller = new UserController()
 router.post('/', (req, res) => controller.createUserAsync(req, res))
 
 // Защищенные маршруты
-router.get('/me/avatar', authMiddleware, (req, res) => {
+router.get('/me/avatar', (req, res) => {
   controller.getUserAvatarAsync(req, res)
 })
 
