@@ -1,125 +1,174 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { mainButton, backButton, hapticFeedback} from '@telegram-apps/sdk-vue'
-import { GiftIcon } from '@heroicons/vue/24/outline'
-import type { IGift } from '@/modules/gifts/types/gift'
+import { useRoute, useRouter } from 'vue-router'
+import { useStoreStore } from '../stores/storeStore'
+import type { IGift } from '../types/store'
+import { paymentService } from '@/modules/payment/services/paymentService'
 
-interface IGiftDetails extends IGift {
-  available?: number
-}
-
-interface IGiftAction {
-  id: number
-  from: string
-  to: string
-  avatar: string
-}
-
+const route = useRoute()
 const router = useRouter()
-
-const gift = ref<IGiftDetails>({
-  id: '1',
-  name: 'Premium Gift',
-  price: 100,
-  description: 'A premium gift for special occasions',
-  status: 'available',
-  available: 5,
-  imageUrl: 'https://placehold.co/400x400/gold/white?text=PremiumGift'
-})
-
-const recentActions = ref<IGiftAction[]>([
-  {
-    id: 1,
-    from: 'Алиса',
-    to: 'Марк',
-    avatar: 'https://i.pravatar.cc/40?u=1'
+const store = useStoreStore()
+const gift = ref<IGift | null>(null)
+const isLoading = ref(true)
+const recentActions = ref([
+  { 
+    user: { name: 'Alicia', avatar: null },
+    action: 'bought a gift',
+    timestamp: new Date()
   }
 ])
 
-const handleBackClick = (): void => {
-  hapticFeedback.impactOccurred('light')
+const getGiftIcon = (category: string) => {
+  switch (category) {
+    case 'cakes':
+      return '🎂'
+    case 'stars':
+      return '⭐'
+    default:
+      return '🎁'
+  }
+}
+
+const getAvailabilityText = (quantity: number, soldCount: number) => {
+  const available = quantity - soldCount
+  return `${available} of ${quantity}`
+}
+
+const handleBuyClick = async () => {
+  if (!gift.value) return
+
+  try {
+    await paymentService.createPaymentAsync(gift.value.price, gift.value.id)
+  } catch (error) {
+    console.error('Ошибка покупки:', error)
+    // Здесь можно добавить уведомление об ошибке
+  }
+}
+
+// Создаем функцию для обработки нажатия кнопки назад
+const handleBackClick = () => {
   router.back()
 }
 
-const handleBuyClick = (): void => {
-  hapticFeedback.impactOccurred('medium')
-}
+onMounted(async () => {
+  try {
+    // Получаем WebApp
+    const webApp = window.Telegram?.WebApp
+    if (!webApp) {
+      console.error('Telegram WebApp не доступен')
+      return
+    }
 
-onMounted(() => {
-  // Сначала монтируем кнопки
-  mainButton.mount()
-  backButton.mount()
-  
-  // Затем показываем back button
-  backButton.show()
-  backButton.onClick(handleBackClick)
-  
-  // Настраиваем main button
-  mainButton.setParams({
-    text: 'Купить подарок',
-    isVisible: true,
-    backgroundColor: '#007AFF',
-    textColor: '#FFFFFF'
-  })
+    // Показываем кнопку назад и добавляем обработчик
+    webApp.BackButton.show()
+    webApp.BackButton.onClick(handleBackClick)
+    console.log('BackButton настроен:', webApp.BackButton.isVisible) // Для отладки
 
-  mainButton.onClick(handleBuyClick)
+    // Загружаем данные подарка
+    const giftId = route.params.id as string
+    const cachedGift = store.getGiftById(giftId)
+    
+    if (cachedGift) {
+      gift.value = cachedGift
+      isLoading.value = false
+    } else {
+      gift.value = await store.fetchGiftByIdAsync(giftId)
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки подарка:', error)
+  } finally {
+    isLoading.value = false
+  }
 })
 
 onUnmounted(() => {
-    mainButton.setParams({
-    text: 'Купить подарок',
-    isVisible: false,
-    backgroundColor: '#007AFF',
-    textColor: '#FFFFFF'
-  })
-  mainButton.unmount()
-  backButton.hide()
-  backButton.unmount()
+  // Убираем обработчик и скрываем кнопку при уходе со страницы
+  const webApp = window.Telegram?.WebApp
+  if (webApp?.BackButton) {
+    webApp.BackButton.offClick(handleBackClick) // Важно: удаляем именно тот обработчик, который добавили
+    webApp.BackButton.hide()
+    console.log('BackButton удален:', !webApp.BackButton.isVisible) // Для отладки
+  }
 })
 </script>
 
 <template>
-  <div class="p-4">
-    <div class="w-full aspect-square flex items-center justify-center bg-[#FFF3E0] rounded-lg mb-4">
-      <GiftIcon class="w-32 h-32 text-primary-light dark:text-primary-dark" />
-    </div>
-    
-    <h1 class="text-2xl font-bold text-label-primary-light dark:text-label-primary-dark">
-      {{ gift.name }}
-    </h1>
-    <p class="text-sm text-label-secondary-light dark:text-label-secondary-dark">
-      {{ gift.available ?? 'Нет в наличии' }}
-    </p>
-    
-    <p class="mt-4 text-label-secondary-light dark:text-label-secondary-dark">
-      {{ gift.description }}
-    </p>
-    
-    <div class="mt-8">
-      <h2 class="text-sm font-medium text-label-secondary-light dark:text-label-secondary-dark mb-4">
-        НЕДАВНИЕ ДЕЙСТВИЯ
-      </h2>
-      <div 
-        v-for="action in recentActions" 
-        :key="action.id" 
-        class="flex items-center gap-2 mb-2"
-      >
-        <img 
-          :src="action.avatar" 
-          :alt="action.from"
-          class="w-8 h-8 rounded-full"
-        >
-        <span class="text-label-primary-light dark:text-label-primary-dark">
-          {{ action.from }}
-        </span>
-        <span class="text-label-secondary-light dark:text-label-secondary-dark">
-          отправил подарок
-        </span>
-        <span class="text-primary-light dark:text-primary-dark">
-          {{ action.to }}
-        </span>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <div v-if="isLoading" class="p-4">
+      <div class="animate-pulse">
+        <div class="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
       </div>
+    </div>
+
+    <div v-else-if="gift" class="relative">
+      <!-- Фон подарка -->
+      <div 
+        class="h-64 flex items-center justify-center"
+        :class="gift.bgColor"
+      >
+        <span class="text-8xl">{{ getGiftIcon(gift.category) }}</span>
+      </div>
+
+      <!-- Информация о подарке -->
+      <div class="p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{ gift.name }}
+          </h1>
+          <div class="px-3 py-1 bg-blue-500 text-white rounded-full">
+            {{ gift.price }} TON
+          </div>
+        </div>
+
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          {{ gift.description }}
+        </p>
+
+        <div class="flex justify-between items-center mb-6">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            {{ getAvailabilityText(gift.quantity, gift.soldCount) }}
+          </div>
+          <div class="text-sm font-medium text-blue-500">
+            {{ gift.rarity }}
+          </div>
+        </div>
+
+        <!-- История действий -->
+        <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+          <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            Recently Actions
+          </h2>
+          <div 
+            v-for="(action, index) in recentActions" 
+            :key="index"
+            class="flex items-center py-2"
+          >
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+              {{ action.user.name[0] }}
+            </div>
+            <div>
+              <span class="font-medium text-gray-900 dark:text-white">{{ action.user.name }}</span>
+              <span class="text-gray-500 dark:text-gray-400"> {{ action.action }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Кнопка покупки -->
+      <div class="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <button
+          class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium"
+          @click="handleBuyClick"
+        >
+          Buy a Gift
+        </button>
+      </div>
+    </div>
+
+    <div v-else class="p-4 text-center text-gray-500 dark:text-gray-400">
+      Gift not found
     </div>
   </div>
 </template>

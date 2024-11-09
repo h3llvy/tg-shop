@@ -1,21 +1,21 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { defineAsyncComponent } from 'vue'
-import StoreSkeleton from '../components/StoreSkeleton.vue'
+import StorePage from '../pages/StorePage.vue'
+import GiftDetailsPage from '../pages/GiftDetailsPage.vue'
 
 export const storeRoutes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'store',
-    component: defineAsyncComponent({
-      loader: () => import('../pages/StorePage.vue'),
-      loadingComponent: StoreSkeleton
-    }),
+    component: StorePage,
     meta: { title: 'Store' }
   },
   {
     path: '/gift/:id',
     name: 'gift-details',
-    component: () => import('../pages/GiftDetailsPage.vue'),
-    meta: { title: 'Gift Details' }
+    component: GiftDetailsPage,
+    meta: { 
+      title: 'Gift Details',
+      hideNavigation: true
+    }
   }
 ]

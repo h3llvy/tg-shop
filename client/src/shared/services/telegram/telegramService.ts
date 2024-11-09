@@ -1,31 +1,83 @@
-import type { IWebApp } from './types'
+import type { Telegram } from '@/types/telegram'
 
 class TelegramService {
-  public readonly webApp: IWebApp
+  private readonly p_webApp: Telegram.WebApp | undefined
 
   constructor() {
-    if (!window.Telegram?.WebApp) {
-      throw new Error('Telegram WebApp is not available')
+    this.p_webApp = window.Telegram?.WebApp
+    if (!this.p_webApp) {
+      console.warn('Telegram WebApp не инициализирован')
     }
-    this.webApp = window.Telegram.WebApp
   }
 
-  // Методы, которых нет в SDK
-  public switchInlineQuery(query: string, chatTypes?: string[]) {
-    this.webApp.switchInlineQuery(query, chatTypes)
+  public init(): void {
+    if (this.p_webApp) {
+      this.p_webApp.ready()
+      this.p_webApp.expand()
+    }
   }
 
-  public get initData() {
-    return this.webApp.initData
+  public showBackButton(): void {
+    if (this.p_webApp?.BackButton) {
+      this.p_webApp.BackButton.show()
+    }
   }
 
-  public get user() {
-    return this.webApp.initDataUnsafe.user
+  public hideBackButton(): void {
+    if (this.p_webApp?.BackButton) {
+      this.p_webApp.BackButton.hide()
+    }
   }
 
-  public get isDark() {
-    return this.webApp.colorScheme === 'dark'
+  public onBackButtonClick(callback: () => void): void {
+    if (this.p_webApp?.BackButton) {
+      this.p_webApp.BackButton.onClick(callback)
+    }
+  }
+
+  public offBackButtonClick(callback: () => void): void {
+    if (this.p_webApp?.BackButton) {
+      this.p_webApp.BackButton.offClick(callback)
+    }
+  }
+
+  public async openInvoiceAsync(url: string): Promise<void> {
+    if (!this.p_webApp) {
+      throw new Error('Telegram WebApp не инициализирован')
+    }
+
+    try {
+      const hash = url.replace('ton://invoice/', '')
+      await this.p_webApp.openInvoice(hash)
+    } catch (error) {
+      console.error('Ошибка открытия инвойса:', error)
+      throw error
+    }
+  }
+
+  get webApp(): Telegram.WebApp | undefined {
+    return this.p_webApp
+  }
+
+  get colorScheme(): 'light' | 'dark' {
+    return this.p_webApp?.colorScheme || 'light'
+  }
+
+  get initData(): string {
+    return this.p_webApp?.initData || ''
+  }
+
+  get user(): Telegram.WebAppUser | undefined {
+    return this.p_webApp?.initDataUnsafe?.user
+  }
+
+  get viewportHeight(): number {
+    return this.p_webApp?.viewportHeight || window.innerHeight
+  }
+
+  get isExpanded(): boolean {
+    return this.p_webApp?.isExpanded || false
   }
 }
 
-export const telegramService = new TelegramService() 
+export const telegramService = new TelegramService()

@@ -1,83 +1,84 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useStoreStore } from '../stores/storeStore'
 import { GiftIcon } from '@heroicons/vue/24/outline'
-import type { IStoreGift } from '../types/store'
 
 const router = useRouter()
+const store = useStoreStore()
+const { gifts } = storeToRefs(store)
+const isLoading = ref(true)
 
-const gifts = ref<IStoreGift[]>([
-  {
-    id: '1',
-    name: 'Delicious Cake',
-    description: 'A tasty cake for your friend',
-    price: 10,
-    available: 100,
-    bgColor: 'bg-accent-purple-light dark:bg-accent-purple-dark'
-  },
-  {
-    id: '2',
-    name: 'Green Star',
-    description: '',
-    price: 5,
-    available: 802,
-    bgColor: 'bg-[#E8F5E9]'
-  },
-  {
-    id: '3',
-    name: 'Blue Star',
-    description: '',
-    price: 5,
-    available: 458,
-    bgColor: 'bg-[#E3F2FD]'
-  },
-  {
-    id: '4',
-    name: 'Red Star',
-    description: '',
-    price: 5,
-    available: 10000,
-    bgColor: 'bg-[#FCE4EC]'
+const getGiftIcon = (category: string) => {
+  switch (category) {
+    case 'cakes':
+      return '🎂'
+    case 'stars':
+      return '⭐'
+    default:
+      return '🎁'
   }
-])
-
-const navigateToGiftDetails = (_giftId: string): void => {
-  router.push(`/gift/${_giftId}`)
 }
+
+const getAvailabilityText = (quantity: number, soldCount: number) => {
+  const available = quantity - soldCount
+  return `${available} of ${quantity}`
+}
+
+const navigateToGiftDetails = (giftId: string) => {
+  router.push(`/gift/${giftId}`)
+}
+
+onMounted(async () => {
+  try {
+    await store.fetchGiftsAsync()
+  } catch (error) {
+    console.error('Ошибка загрузки подарков:', error)
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <template>
-  <div class="p-4">
-    <div class="flex items-center justify-center mb-4">
-      <GiftIcon class="w-12 h-12 text-primary-light dark:text-primary-dark mr-2" />
-      <h1 class="text-2xl font-bold text-label-primary-light dark:text-label-primary-dark">
-        Купить и отправить подарки
-      </h1>
-    </div>
-    
-    <p class="text-label-secondary-light dark:text-label-secondary-dark text-center mb-8">
-      Уникальные подарки для каждого от Crypto Pay
-    </p>
+  <div class="min-h-screen bg-white dark:bg-gray-900">
+    <div class="p-4">
+      <div class="flex flex-col items-center justify-center mb-6">
+        <GiftIcon class="w-12 h-12 text-blue-500 mb-2" />
+        <h1 class="text-xl font-bold text-center text-gray-900 dark:text-white">
+          Buy and Send Gifts
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+          Unique gifts for everyone by Crypto Pay
+        </p>
+      </div>
 
-    <div class="grid grid-cols-2 gap-4">
-      <div 
-        v-for="gift in gifts" 
-        :key="gift.id"
-        :class="['rounded-lg p-4 cursor-pointer transition-transform hover:scale-105', gift.bgColor]"
-        @click="navigateToGiftDetails(gift.id)"
-      >
-        <div class="w-full aspect-square flex items-center justify-center rounded-lg mb-2">
-          <GiftIcon class="w-16 h-16 text-primary-light dark:text-primary-dark" />
+      <div v-if="isLoading" class="grid grid-cols-2 gap-4">
+        <div v-for="i in 4" :key="i" class="animate-pulse">
+          <div class="bg-gray-200 dark:bg-gray-800 rounded-lg p-4 h-48"></div>
         </div>
-        <h3 class="font-bold text-label-primary-light dark:text-label-primary-dark">
-          {{ gift.name }}
-        </h3>
-        <p class="text-xs text-label-secondary-light dark:text-label-secondary-dark">
-          {{ gift.available }}
-        </p>
-        <p class="mt-2 font-bold text-accent-primary">
-          {{ gift.price }} TON
-        </p>
+      </div>
+
+      <div v-else class="grid grid-cols-2 gap-4">
+        <div
+          v-for="gift in gifts"
+          :key="gift.id"
+          class="relative rounded-lg p-4 cursor-pointer transition-transform hover:scale-105"
+          :class="gift.bgColor"
+          @click="navigateToGiftDetails(gift.id)"
+        >
+          <div class="flex flex-col items-center">
+            <span class="text-4xl mb-2">{{ getGiftIcon(gift.category) }}</span>
+            <h3 class="font-medium text-center mb-1">{{ gift.name }}</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-300">
+              {{ getAvailabilityText(gift.quantity, gift.soldCount) }}
+            </p>
+            <div class="mt-2 px-3 py-1 bg-blue-500 text-white rounded-full text-sm">
+              {{ gift.price }} TON
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

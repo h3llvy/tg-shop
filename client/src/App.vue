@@ -1,26 +1,32 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { viewport } from '@telegram-apps/sdk-vue'
 import { telegramService } from '@/shared/services/telegram/telegramService'
+import { authService } from '@/shared/services/auth/authService'
 import BottomNavigation from './shared/components/BottomNavigation.vue'
 
-// Получаем текущий маршрут
 const route = useRoute()
 
-// Сигнал для темной темы через SDK
 const isDarkTheme = computed(() => {
-  return telegramService.webApp.colorScheme === 'dark'
+  return telegramService.colorScheme === 'dark'
 })
 
-// Скрываем навигацию на определенных страницах
 const p_hideNavigation = computed(() => {
-  return ['gift-details', 'payment'].includes(route.name as string)
+  return route.meta.hideNavigation === true
 })
 
-// Монтируем и расширяем viewport
-viewport.mount()
-viewport.expand()
+onMounted(async () => {
+  try {
+    // Инициализируем Telegram WebApp
+    telegramService.init()
+    console.log('Telegram WebApp инициализирован')
+    
+    // Авторизуемся
+    await authService.loginAsync()
+  } catch (error) {
+    console.error('Ошибка инициализации:', error)
+  }
+})
 </script>
 
 <template>
