@@ -17,6 +17,8 @@ interface IConfig {
   NODE_ENV: 'development' | 'production'
   MONGODB_LOG_LEVEL: string
   MONGOOSE_DEBUG: boolean
+  BOT_NAME: string
+  SERVER_URL: string
 }
 
 const config: IConfig = {
@@ -37,7 +39,9 @@ const config: IConfig = {
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'https://local-tuna-client.ru.tuna.am',
   NODE_ENV: (process.env.NODE_ENV as 'development' | 'production') || 'development',
   MONGODB_LOG_LEVEL: process.env.MONGODB_LOG_LEVEL || 'error',
-  MONGOOSE_DEBUG: process.env.MONGOOSE_DEBUG === 'true'
+  MONGOOSE_DEBUG: process.env.MONGOOSE_DEBUG === 'true',
+  BOT_NAME: process.env.BOT_NAME || 'Gift Shop Bot',
+  SERVER_URL: process.env.SERVER_URL || 'http://localhost:4000'
 }
 
 // Проверяем обязательные переменные только если это не скрипт

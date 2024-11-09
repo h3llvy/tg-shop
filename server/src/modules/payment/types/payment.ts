@@ -1,5 +1,7 @@
+export type CryptoAsset = 'USDT' | 'TON' | 'BTC' | 'ETH'
+
 export interface IPaymentInvoice {
-  asset: 'USDT' | 'TON' | 'BTC' | 'ETH'
+  asset: CryptoAsset
   amount: string
   description: string
   hidden_message?: string

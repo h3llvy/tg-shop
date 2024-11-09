@@ -1,4 +1,11 @@
 declare module 'crypto-bot-api' {
+  export type NetworkType = 'mainnet' | 'testnet'
+  
+  export interface ApiOptions {
+    hostname?: string
+    protocol?: string
+  }
+
   export interface CreateInvoiceParams {
     amount: string
     asset: string
@@ -21,14 +28,16 @@ declare module 'crypto-bot-api' {
     botPayUrl: string
     miniAppPayUrl: string
     webAppPayUrl: string
-    description?: string
-    createdAt?: string
-    paidAt?: string
-    payload?: any
+    created_at: string
+    expiration_date?: string
+    paid_at?: string
+    allow_comments: boolean
+    allow_anonymous: boolean
+    description: string
   }
 
   export default class CryptoBotAPI {
-    constructor(token: string)
+    constructor(token: string, network?: NetworkType)
     createInvoice(params: CreateInvoiceParams): Promise<Invoice>
     getInvoices(params?: { invoice_ids?: number[] }): Promise<{ items: Invoice[] }>
   }

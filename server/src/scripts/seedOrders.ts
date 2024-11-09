@@ -3,6 +3,7 @@ import { Order } from '../modules/database/models/Order'
 import { Gift } from '../modules/database/models/Gift'
 import { User } from '../modules/database/models/User'
 import { config } from '../config'
+import { CryptoAsset } from '../modules/payment/types/payment'
 
 export async function seedOrdersAsync() {
   try {
@@ -24,21 +25,24 @@ export async function seedOrdersAsync() {
     // Создаем тестовые заказы
     const orders = []
     const statuses = ['pending', 'paid', 'sent', 'delivered', 'cancelled']
+    const assets: CryptoAsset[] = ['USDT', 'TON', 'BTC', 'ETH']
 
     for (let i = 0; i < 20; i++) {
       const gift = gifts[Math.floor(Math.random() * gifts.length)]
       const sender = users[Math.floor(Math.random() * users.length)]
       const recipient = users[Math.floor(Math.random() * users.length)]
       const status = statuses[Math.floor(Math.random() * statuses.length)]
+      const asset = assets[Math.floor(Math.random() * assets.length)]
 
       orders.push({
         giftId: gift._id,
         senderId: sender.telegramId,
         recipientId: recipient.telegramId,
         status,
-        amount: gift.price,
+        amount: gift.prices[asset],
         message: `Тестовое сообщение ${i + 1}`,
-        paymentId: status === 'paid' ? `test_payment_${i}` : undefined
+        paymentId: status === 'paid' ? `test_payment_${i}` : undefined,
+        asset
       })
     }
 

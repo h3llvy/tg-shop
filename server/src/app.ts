@@ -8,6 +8,7 @@ import { paymentRoutes } from './modules/payment'
 import { leaderboardRoutes } from './modules/leaderboard/routes/leaderboardRoutes'
 import { LoggerService } from './modules/core/services/loggerService'
 import { errorMiddleware } from './modules/core/middleware/errorMiddleware'
+import path from 'path'
 
 const app: Express = express()
 const logger = new LoggerService()
@@ -55,6 +56,9 @@ app.use(cors({
 }))
 
 app.use(express.json())
+
+// Добавляем раздачу статических файлов
+app.use('/static', express.static(path.join(__dirname, '../static')))
 
 // Маршруты
 app.use('/api/auth', authRoutes)

@@ -5,10 +5,16 @@ export interface IGift {
   name: string
   description: string
   price: number
-  imageUrl: string
-  status: 'available' | 'purchased' | 'gifted'
-  owner?: Types.ObjectId
-  recipient?: Types.ObjectId
+  imageUrl?: string
+  category: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  isAvailable: boolean
+  quantity: number
+  soldCount: number
+  bgColor: string
+  availableQuantity?: number
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface IGiftPurchase {

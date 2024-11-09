@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose'
+import { CryptoAsset } from '../../payment/types/payment'
 
 interface IOrder {
   giftId: Schema.Types.ObjectId
@@ -6,6 +7,7 @@ interface IOrder {
   recipientId: number // telegramId получателя
   status: 'pending' | 'paid' | 'sent' | 'delivered' | 'cancelled'
   amount: number
+  asset: CryptoAsset
   message?: string
   createdAt: Date
   updatedAt: Date
@@ -23,6 +25,7 @@ const orderSchema = new Schema<IOrder>({
     default: 'pending'
   },
   amount: { type: Number, required: true },
+  asset: { type: String, required: true, enum: ['USDT', 'TON', 'BTC', 'ETH'] },
   message: String,
   paymentId: String
 }, {

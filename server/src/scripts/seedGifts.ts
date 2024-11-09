@@ -6,45 +6,69 @@ const GIFTS = [
   {
     name: 'Delicious Cake',
     description: 'A tasty cake for your friend',
-    price: 10,
+    prices: {
+      USDT: 1,
+      TON: 0.5,
+      BTC: 0.000024,
+      ETH: 0.00041
+    },
     category: 'cakes',
     rarity: 'common',
-    quantity: 1000,
+    availableQuantity: 1000,
     soldCount: 0,
     isAvailable: true,
+    image: 'https://placehold.co/400x400/pink/white?text=Cake',
     bgColor: 'bg-[#FFF3E0]'
   },
   {
     name: 'Red Star',
     description: 'A shiny premium star',
-    price: 50,
+    prices: {
+      USDT: 2,
+      TON: 1,
+      BTC: 0.000048,
+      ETH: 0.00082
+    },
     category: 'stars',
     rarity: 'epic',
-    quantity: 100,
+    availableQuantity: 100,
     soldCount: 0,
     isAvailable: true,
+    image: 'https://placehold.co/400x400/red/white?text=RedStar',
     bgColor: 'bg-[#FCE4EC]'
   },
   {
     name: 'Green Star',
     description: 'A beautiful rare star',
-    price: 25,
+    prices: {
+      USDT: 3,
+      TON: 1.5,
+      BTC: 0.000072,
+      ETH: 0.00123
+    },
     category: 'stars',
     rarity: 'rare',
-    quantity: 500,
+    availableQuantity: 500,
     soldCount: 0,
     isAvailable: true,
+    image: 'https://placehold.co/400x400/green/white?text=GreenStar',
     bgColor: 'bg-[#E8F5E9]'
   },
   {
     name: 'Blue Star',
     description: 'An amazing legendary star',
-    price: 100,
+    prices: {
+      USDT: 4,
+      TON: 2,
+      BTC: 0.000096,
+      ETH: 0.00164
+    },
     category: 'stars',
     rarity: 'legendary',
-    quantity: 50,
+    availableQuantity: 50,
     soldCount: 0,
     isAvailable: true,
+    image: 'https://placehold.co/400x400/blue/white?text=BlueStar',
     bgColor: 'bg-[#E3F2FD]'
   }
 ] as const

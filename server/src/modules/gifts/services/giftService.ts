@@ -1,49 +1,63 @@
 import type { IGift } from '../types/gift'
-import { GiftModel } from '../models/Gift'
+import { Gift } from '../../database/models/Gift'
+import { GiftHistory } from '../../database/models/GiftHistory'
+import { LoggerService } from '../../core/services/loggerService'
 
 export class GiftService {
+  private readonly p_logger: LoggerService
+
+  constructor() {
+    this.p_logger = new LoggerService()
+  }
+
   public async getAllAsync(): Promise<IGift[]> {
     try {
-      return await GiftModel.find()
+      return await Gift.find()
     } catch (error) {
-      console.error('Ошибка при получении подарков:', error)
+      this.p_logger.logError('Ошибка при получении подарков:', error)
       throw error
     }
   }
 
   public async getByIdAsync(_id: string): Promise<IGift | null> {
     try {
-      return await GiftModel.findById(_id)
+      return await Gift.findById(_id)
     } catch (error) {
-      console.error('Ошибка при получении подарка:', error)
+      this.p_logger.logError('Ошибка при получении подарка:', error)
       throw error
     }
   }
 
   public async purchaseAsync(_giftId: string, _userId: string): Promise<IGift> {
     try {
-      const gift = await GiftModel.findById(_giftId)
+      const gift = await Gift.findById(_giftId)
       if (!gift) {
         throw new Error('Подарок не найден')
       }
 
-      if (gift.status !== 'available') {
+      if (!gift.isAvailable || gift.availableQuantity <= 0) {
         throw new Error('Подарок недоступен для покупки')
       }
 
-      gift.status = 'purchased'
-      gift.owner = _userId as any // Временное решение, пока нет модели User
+      gift.soldCount += 1
+      
+      // Записываем историю
+      await GiftHistory.create({
+        giftId: gift._id,
+        userId: Number(_userId),
+        action: 'buy'
+      })
       
       return await gift.save()
     } catch (error) {
-      console.error('Ошибка при покупке подарка:', error)
+      this.p_logger.logError('Ошибка при покупке подарка:', error)
       throw error
     }
   }
 
   public async sendAsync(_giftId: string, _userId: string, _recipientId: string): Promise<IGift> {
     try {
-      const gift = await GiftModel.findById(_giftId)
+      const gift = await Gift.findById(_giftId)
       if (!gift) {
         throw new Error('Подарок не найден')
       }
@@ -61,7 +75,7 @@ export class GiftService {
       
       return await gift.save()
     } catch (error) {
-      console.error('Ошибка при отправке подарка:', error)
+      this.p_logger.logError('Ошибка при отправке подарка:', error)
       throw error
     }
   }
