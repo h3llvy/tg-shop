@@ -16,6 +16,7 @@ export class UserController {
 
   public async createUserAsync(req: Request, res: Response): Promise<void> {
     try {
+      console.log('Получен запрос на создание пользователя:', req.body);
       const { telegramId } = req.body
 
       let user = await this.p_userRepository.findByTelegramIdAsync(telegramId)

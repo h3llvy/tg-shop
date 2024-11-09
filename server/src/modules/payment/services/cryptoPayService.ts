@@ -1,89 +1,58 @@
-import axios from 'axios'
-import type { IPaymentInvoice, IPaymentWebhook, ICreateInvoiceResponse } from '../types/payment'
+import CryptoBotAPI from 'crypto-bot-api'
+import { config } from '../../../config'
+import { LoggerService } from '../../core/services/loggerService'
 
-export class CryptoPayService {
-  private readonly p_apiUrl: string
-  private readonly p_token: string
+class CryptoPayService {
+  private readonly p_client: CryptoBotAPI
+  private readonly p_logger: LoggerService
 
   constructor() {
-    const token = process.env.CRYPTO_PAY_API_TOKEN
-    if (!token) {
-      throw new Error('Не задан CRYPTO_PAY_API_TOKEN')
-    }
-    this.p_token = token
-    this.p_apiUrl = 'https://pay.crypt.bot/api'
+    this.p_client = new CryptoBotAPI(config.CRYPTO_PAY_API_TOKEN)
+    this.p_logger = new LoggerService()
   }
 
-  private async requestAsync<T>(method: string, data?: any): Promise<T> {
+  public async createInvoiceAsync(amount: number, payload: string) {
     try {
-      const { data: response } = await axios.post<{ ok: boolean, result: T }>(
-        `${this.p_apiUrl}/${method}`,
-        data,
-        {
-          headers: {
-            'Crypto-Pay-API-Token': this.p_token
-          }
-        }
-      )
+      this.p_logger.logInfo('Создание инвойса:', { amount, payload })
 
-      if (!response.ok) {
-        throw new Error('API вернул ошибку')
+      const invoice = await this.p_client.createInvoice({
+        amount: amount.toString(),
+        asset: 'TON',
+        description: 'Gift Shop Purchase',
+        payload,
+        paid_btn_name: 'viewItem',
+        paid_btn_url: `${config.WEBAPP_URL}/payment/success`,
+        allow_comments: false,
+        allow_anonymous: false,
+        expires_in: 1800
+      })
+
+      this.p_logger.logInfo('Инвойс создан:', invoice)
+
+      const invoiceUrl = `ton://invoice/${invoice.hash}`
+
+      return {
+        invoice_id: invoice.id,
+        status: invoice.status,
+        pay_url: invoiceUrl
       }
-
-      return response.result
     } catch (error) {
-      console.error(`Ошибка запроса к ${method}:`, error)
+      this.p_logger.logError('Ошибка создания инвойса:', error)
       throw error
     }
   }
 
-  public async createInvoiceAsync(_amount: number, _description: string): Promise<ICreateInvoiceResponse> {
-    const payload: IPaymentInvoice = {
-      asset: 'TON',
-      amount: _amount.toString(),
-      description: _description,
-      paid_btn_name: 'callback',
-      paid_btn_url: `${process.env.PUBLIC_URL}/payment/success`,
-      hidden_message: 'Спасибо за покупку!',
-      allow_comments: true,
-      allow_anonymous: false,
-      expires_in: 3600 // 1 час
-    }
-
-    return this.requestAsync<ICreateInvoiceResponse>('createInvoice', payload)
-  }
-
-  public async getInvoiceAsync(_invoiceId: number): Promise<ICreateInvoiceResponse> {
-    return this.requestAsync<ICreateInvoiceResponse>('getInvoice', { invoice_id: _invoiceId })
-  }
-
-  public async handleWebhookAsync(_data: IPaymentWebhook): Promise<void> {
+  public async getInvoiceAsync(invoiceId: number) {
     try {
-      if (_data.status === 'paid') {
-        // Здесь логика обработки успешного платежа
-        console.log('Платеж успешно обработан:', _data)
-      }
+      const response = await this.p_client.getInvoices({ 
+        invoice_ids: [invoiceId] 
+      })
+      return response.items[0]
     } catch (error) {
-      console.error('Ошибка обработки платежа:', error)
+      this.p_logger.logError('Ошибка получения инвойса:', error)
       throw error
     }
-  }
-
-  public async checkPaymentAsync(_invoiceId: number): Promise<boolean> {
-    try {
-      const invoice = await this.getInvoiceAsync(_invoiceId)
-      return invoice.status === 'paid'
-    } catch (error) {
-      console.error('Ошибка проверки платежа:', error)
-      return false
-    }
-  }
-
-  public async getBalanceAsync(): Promise<Array<{ currency: string, available: string }>> {
-    return this.requestAsync('getBalance')
-  }
-
-  public async getExchangeRatesAsync(): Promise<Array<{ source: string, target: string, rate: string }>> {
-    return this.requestAsync('getExchangeRates')
   }
 }
+
+export const cryptoPayService = new CryptoPayService()

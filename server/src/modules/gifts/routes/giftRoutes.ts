@@ -1,24 +1,18 @@
 import { Router } from 'express'
 import { GiftController } from '../controllers/giftController'
-import { authMiddleware } from '../../auth/middleware/authMiddleware'
+import { telegramAuthMiddleware } from '../../auth/middleware/telegramAuthMiddleware'
 
 const router = Router()
 const controller = new GiftController()
 
-router.get('/', (req, res) => {
-  controller.getGiftsAsync(req, res)
+// Получение всех подарков
+router.get('/', telegramAuthMiddleware, (req, res, next) => {
+  controller.getGiftsAsync(req, res).catch(next)
 })
 
-router.get('/:id', (req, res) => {
-  controller.getGiftByIdAsync(req, res)
-})
-
-router.post('/:id/purchase', authMiddleware, (req, res) => {
-  controller.purchaseGiftAsync(req, res)
-})
-
-router.post('/:id/send', authMiddleware, (req, res) => {
-  controller.sendGiftAsync(req, res)
+// Получение подарка по ID
+router.get('/:id', telegramAuthMiddleware, (req, res, next) => {
+  controller.getGiftByIdAsync(req, res).catch(next)
 })
 
 export { router as giftRoutes }

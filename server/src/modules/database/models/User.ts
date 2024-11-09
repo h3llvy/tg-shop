@@ -29,22 +29,19 @@ const userSchema = new Schema<IUser>({
   lastActive: {
     type: Date,
     default: Date.now
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
 }, {
   timestamps: true,
   collection: 'users'
 })
 
-userSchema.index({ telegramId: 1 }, { unique: true })
-userSchema.index({ username: 1 })
-userSchema.index({ lastActive: -1 })
+// Добавляем виртуальное поле для общего количества подарков
+userSchema.virtual('giftsCount').get(function() {
+  return this.giftsReceived + this.giftsSent
+})
+
+// Обязательно включаем виртуальные поля при использовании lean()
+userSchema.set('toObject', { virtuals: true })
+userSchema.set('toJSON', { virtuals: true })
 
 export const User = model<IUser>('User', userSchema) 

@@ -19,52 +19,29 @@ export class DatabaseService {
   }
 
   public async connectAsync(): Promise<void> {
-    const maxRetries = 5;
-    const retryDelay = 5000;
-    let retries = 0;
-
-    while (retries < maxRetries) {
-      try {
-        // Подключение к MongoDB
-        await mongoose.connect(this.p_config.mongoUri, {
-          authSource: 'admin',
-          retryWrites: true,
-          w: 'majority',
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 10000
-        })
-
-        console.log('✅ MongoDB подключена успешно')
-        await this.logMongoDBInfo()
-
-        // Подключение к Redis
-        this.p_redisClient = new Redis({
-          host: this.p_config.redisHost,
-          port: this.p_config.redisPort,
-          password: this.p_config.redisPassword,
-          retryStrategy: (times) => {
-            if (times > maxRetries) return null;
-            return Math.min(times * 1000, retryDelay);
-          },
-          maxRetriesPerRequest: 3
-        });
-
-        await new Promise((resolve, reject) => {
-          this.p_redisClient!.on('connect', resolve);
-          this.p_redisClient!.on('error', reject);
-        });
-
-        console.log('✅ Redis подключен успешно')
-        return;
-
-      } catch (error) {
-        console.error(`❌ Попытка подключения ${retries + 1}/${maxRetries} не удалась:`, error)
-        retries++;
-        if (retries === maxRetries) {
-          throw new Error('Превышено максимальное количество попыток подключения');
+    try {
+      await mongoose.connect(this.p_config.mongoUri)
+      console.log('✅ MongoDB подключена успешно')
+      
+      // Ждем пока соединение будет установлено
+      await new Promise<void>((resolve) => {
+        if (mongoose.connection.readyState === 1) {
+          resolve()
+        } else {
+          mongoose.connection.once('connected', () => resolve())
         }
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      })
+
+      // Теперь безопасно проверяем соединение
+      if (mongoose.connection.db) {
+        const adminDb = mongoose.connection.db.admin()
+        const serverStatus = await adminDb.serverStatus()
+        console.log(`MongoDB версия: ${serverStatus.version}`)
+        console.log(`Активные соединения: ${serverStatus.connections.current}`)
       }
+    } catch (error) {
+      console.error('❌ Ошибка подключения к MongoDB:', error)
+      throw error
     }
   }
 

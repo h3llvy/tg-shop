@@ -1,79 +1,49 @@
 import { Request, Response } from 'express'
-import { GiftService } from '../services/giftService'
+import mongoose from 'mongoose'
+import { Gift } from '../../database/models/Gift'
+import { LoggerService } from '../../core/services/loggerService'
 
 export class GiftController {
-  private readonly p_giftService: GiftService
+  private readonly p_logger: LoggerService
 
   constructor() {
-    this.p_giftService = new GiftService()
+    this.p_logger = new LoggerService()
   }
 
-  public async getGiftsAsync(_req: Request, res: Response): Promise<void> {
+  public async getGiftsAsync(req: Request, res: Response) {
     try {
-      const gifts = await this.p_giftService.getAllAsync()
+      const gifts = await Gift.find({ isAvailable: true })
       res.json(gifts)
     } catch (error) {
-      console.error('Ошибка при получении подарков:', error)
-      res.status(500).json({ error: 'Не удалось получить подарки' })
+      this.p_logger.logError('Ошибка получения подарков:', error)
+      res.status(500).json({ error: 'Ошибка получения подарков' })
     }
   }
 
-  public async getGiftByIdAsync(req: Request, res: Response): Promise<void> {
+  public async getGiftByIdAsync(req: Request, res: Response) {
     try {
       const { id } = req.params
-      const gift = await this.p_giftService.getByIdAsync(id)
       
-      if (!gift) {
-        res.status(404).json({ error: 'Подарок не найден' })
-        return
+      if (!id) {
+        this.p_logger.logWarning('ID подарка не указан')
+        return res.status(400).json({ error: 'ID подарка не указан' })
       }
-      
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        this.p_logger.logWarning('Неверный формат ID подарка:', id)
+        return res.status(400).json({ error: 'Неверный формат ID подарка' })
+      }
+
+      const gift = await Gift.findById(id)
+      if (!gift) {
+        this.p_logger.logWarning('Подарок не найден:', id)
+        return res.status(404).json({ error: 'Подарок не найден' })
+      }
+
       res.json(gift)
     } catch (error) {
-      console.error('Ошибка при получении подарка:', error)
-      res.status(500).json({ error: 'Не удалось получить подарок' })
-    }
-  }
-
-  public async purchaseGiftAsync(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params
-      const userId = req.user?.id.toString()
-      
-      if (!userId) {
-        res.status(401).json({ error: 'Пользователь не авторизован' })
-        return
-      }
-      
-      const result = await this.p_giftService.purchaseAsync(id, userId)
-      res.json(result)
-    } catch (error) {
-      console.error('Ошибка при покупке подарка:', error)
-      res.status(500).json({ error: 'Не удалось купить подарок' })
-    }
-  }
-
-  public async sendGiftAsync(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params
-      const { recipientId } = req.body
-      const userId = req.user?.id.toString()
-
-      if (!userId) {
-        res.status(401).json({ error: 'Пользователь не авторизован' })
-        return
-      }
-
-      if (!recipientId) {
-        res.status(400).json({ error: 'Не указан получатель' })
-        return
-      }
-      
-      const result = await this.p_giftService.sendAsync(id, userId, recipientId)
-      res.json(result)
-    } catch (error) {
-      console.error('Ошибка при отправке подарка:', error)
-      res.status(500).json({ error: 'Не удалось отправить подарок' })
+      this.p_logger.logError('Ошибка получения подарка:', error)
+      res.status(500).json({ error: 'Ошибка получения подарка' })
     }
   }
 }
