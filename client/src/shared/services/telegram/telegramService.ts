@@ -47,10 +47,32 @@ class TelegramService {
     }
 
     try {
-      const hash = url.replace('ton://invoice/', '')
-      await this.p_webApp.openInvoice(hash)
+      if (!url) {
+        throw new Error('URL инвойса не предоставлен')
+      }
+      
+      const invoiceUrl = `${url}&mode=compact`
+      await this.p_webApp.openTelegramLink(invoiceUrl)
     } catch (error) {
       console.error('Ошибка открытия инвойса:', error)
+      throw error
+    }
+  }
+
+  public openTelegramLink(url: string): void {
+    if (!this.p_webApp) {
+      throw new Error('Telegram WebApp не инициализирован')
+    }
+
+    try {
+      if (!url) {
+        throw new Error('URL не предоставлен')
+      }
+      
+      
+      this.p_webApp.openTelegramLink(url)
+    } catch (error) {
+      console.error('Ошибка открытия ссылки:', error)
       throw error
     }
   }

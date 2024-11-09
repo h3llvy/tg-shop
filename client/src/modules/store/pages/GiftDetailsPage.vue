@@ -5,11 +5,20 @@ import { useStoreStore } from '../stores/storeStore'
 import type { IGift } from '../types/store'
 import { paymentService } from '@/modules/payment/services/paymentService'
 
+// Добавляем определение assetMap
+const assetMap = {
+  'Delicious Cake': 'USDT',
+  'Red Star': 'TON',
+  'Green Star': 'BTC',
+  'Blue Star': 'ETH'
+} as const
+
 const route = useRoute()
 const router = useRouter()
 const store = useStoreStore()
 const gift = ref<IGift | null>(null)
 const isLoading = ref(true)
+const isProcessing = ref(false)
 const recentActions = ref([
   { 
     user: { name: 'Alicia', avatar: null },
@@ -34,14 +43,47 @@ const getAvailabilityText = (quantity: number, soldCount: number) => {
   return `${available} of ${quantity}`
 }
 
-const handleBuyClick = async () => {
-  if (!gift.value) return
-
+const handlePurchase = async () => {
+  if (!gift.value || isProcessing.value) return
+  
+  isProcessing.value = true
   try {
-    await paymentService.createPaymentAsync(gift.value.price, gift.value.id)
+    const assetMap = {
+      'Delicious Cake': 'USDT',
+      'Red Star': 'TON',
+      'Green Star': 'BTC',
+      'Blue Star': 'ETH'
+    } as const
+
+    const asset = assetMap[gift.value.name] || 'USDT'
+    
+    await paymentService.createPaymentAsync(
+      gift.value.prices[asset],
+      gift.value._id,
+      gift.value.name,
+      asset
+    )
+    // Успешная оплата
+    isProcessing.value = false
+    // Показываем уведомление об успехе
+    window.Telegram.WebApp.showPopup({
+      title: 'Успешная покупка',
+      message: `Вы успешно приобрели ${gift.value.name}!`,
+      buttons: [{
+        type: 'ok'
+      }]
+    })
   } catch (error) {
     console.error('Ошибка покупки:', error)
-    // Здесь можно добавить уведомление об ошибке
+    isProcessing.value = false
+    // Показываем ошибку пользователю
+    window.Telegram.WebApp.showPopup({
+      title: 'Ошибка',
+      message: error.message,
+      buttons: [{
+        type: 'ok'
+      }]
+    })
   }
 }
 
@@ -103,7 +145,7 @@ onUnmounted(() => {
     </div>
 
     <div v-else-if="gift" class="relative">
-      <!-- Фон подарка -->
+      <!-- Фон по��арка -->
       <div 
         class="h-64 flex items-center justify-center"
         :class="gift.bgColor"
@@ -118,7 +160,7 @@ onUnmounted(() => {
             {{ gift.name }}
           </h1>
           <div class="px-3 py-1 bg-blue-500 text-white rounded-full">
-            {{ gift.price }} TON
+            {{ gift.prices[assetMap[gift.name]] }} {{ assetMap[gift.name] }}
           </div>
         </div>
 
@@ -160,9 +202,16 @@ onUnmounted(() => {
       <div class="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
         <button
           class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium"
-          @click="handleBuyClick"
+          @click="handlePurchase"
+          :disabled="isProcessing"
         >
-          Buy a Gift
+          <span v-if="isProcessing" class="flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+              <!-- SVG loader -->
+            </svg>
+            Processing...
+          </span>
+          <span v-else>Buy a Gift</span>
         </button>
       </div>
     </div>
