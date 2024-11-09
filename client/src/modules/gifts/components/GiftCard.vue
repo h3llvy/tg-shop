@@ -1,72 +1,43 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { CakeIcon, SparklesIcon } from '@heroicons/vue/24/outline'
-import { hapticFeedback } from '@telegram-apps/sdk-vue'
-import type { IGift } from '@/modules/gifts/types/gift'
-import SendGiftModal from './SendGiftModal.vue'
+import type { IGift } from '../types/gift'
 
-defineProps<{
+const props = defineProps<{
   gift: IGift
 }>()
 
-const showModal = ref(false)
+// Определяем основную валюту для каждого подарка
+const assetMap = {
+  'Delicious Cake': 'USDT',
+  'Red Star': 'TON',
+  'Green Star': 'BTC',
+  'Blue Star': 'ETH'
+} as const
 
-const getGiftIcon = (name: string | undefined) => {
-  if (!name) return CakeIcon
-  return name.includes('Star') ? SparklesIcon : CakeIcon
-}
-
-const getGiftColor = (name: string) => {
-  switch (name) {
-    case 'Red Star':
-      return 'text-accent-purple-light dark:text-accent-purple-dark'
-    case 'Green Star':
-      return 'text-accent-green-light dark:text-accent-green-dark'
-    case 'Blue Star':
-      return 'text-accent-cyan-light dark:text-accent-cyan-dark'
-    default:
-      return 'text-accent-gold-light dark:text-accent-gold-dark'
-  }
-}
-
-const handleSendClick = () => {
-  // Добавляем тактильную отдачу
-  hapticFeedback.impactOccurred('medium')
-  showModal.value = true
-}
-
-
+const primaryAsset = assetMap[props.gift.name] || 'USDT'
 </script>
 
 <template>
-  <div class="bg-bg-secondary-light dark:bg-bg-secondary-dark rounded-xl p-4 flex flex-col items-center shadow-sm hover:shadow-md transition-shadow">
-    <!-- Название подарка -->
-    <h3 class="text-[14px] font-medium text-label-primary-light dark:text-label-primary-dark text-center mb-4">
-      {{ gift.name }}
-    </h3>
-
-    <!-- Изображение подарка -->
-    <div class="flex-1 flex items-center justify-center w-full my-4">
-      <component 
-        :is="getGiftIcon(gift.name)" 
-        class="w-16 h-16"
-        :class="getGiftColor(gift.name)"
-      />
+  <router-link 
+    :to="{ name: 'gift-details', params: { id: gift._id }}" 
+    class="block rounded-xl p-4 transition-transform hover:scale-105"
+    :class="gift.bgColor"
+  >
+    <div class="relative">
+      <img :src="gift.image" :alt="gift.name" class="w-full rounded-lg mb-2">
+      <span class="absolute top-2 right-2 text-xs bg-white/80 rounded px-2 py-1">
+        {{ gift.soldCount || 0 }} of {{ gift.availableQuantity }}
+      </span>
     </div>
-
-    <!-- Кнопка Send -->
-    <button 
-      @click="handleSendClick"
-      class="w-full h-8 bg-primary-light dark:bg-primary-dark text-white rounded-lg text-[14px] font-medium hover:opacity-80 active:scale-95 transition-all"
-    >
-      Send
-    </button>
-
-    <!-- Модальное окно -->
-    <SendGiftModal 
-      v-if="showModal"
-      :gift="gift"
-      @close="showModal = false"
-    />
-  </div>
+    
+    <h3 class="font-medium text-sm mb-1">{{ gift.name }}</h3>
+    
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-bold">
+        {{ gift.prices[primaryAsset] }} {{ primaryAsset }}
+      </span>
+      <span class="text-xs px-2 py-1 bg-white/50 rounded">
+        {{ gift.rarity }}
+      </span>
+    </div>
+  </router-link>
 </template>

@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import GiftCard from '../components/GiftCard.vue'
+import { ref, onMounted } from 'vue'
 import type { IGift } from '../types/gift'
+import { giftService } from '../services/giftService'
+import GiftCard from '../components/GiftCard.vue'
 
+const gifts = ref<IGift[]>([])
+const isLoading = ref(true)
 
-const gifts = ref<IGift[]>(Array.from({ length: 30 }, (_, i) => ({
-  id: `${i + 1}`,
-  name: ['Delicious Cake', 'Red Star', 'Green Star', 'Blue Star'][i % 4],
-  description: 'A wonderful gift',
-  price: i % 2 ? 5 : 10,
-  imageUrl: `https://placehold.co/400x400/${
-    ['pink', 'red', 'green', 'blue'][i % 4]
-  }/white?text=Gift${i + 1}`,
-  status: 'available' as const
-})))
-
+onMounted(async () => {
+  try {
+    gifts.value = await giftService.getAllGiftsAsync()
+  } catch (error) {
+    console.error('Ошибка загрузки подарков:', error)
+  } finally {
+    isLoading.value = false
+  }
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-bg-primary-light dark:bg-bg-primary-dark overflow-auto">
-    <!-- Заголовок и описание -->
     <div class="px-4 py-6 text-center">
       <h1 class="text-[32px] font-bold text-label-primary-light dark:text-label-primary-dark mb-2">
         Send Gifts in Telegram
@@ -29,8 +29,11 @@ const gifts = ref<IGift[]>(Array.from({ length: 30 }, (_, i) => ({
       </p>
     </div>
 
-    <!-- Сетка подарков с возможностью скролла -->
-    <div class="grid grid-cols-3 gap-4 px-4 pb-[80px] auto-rows-max">
+    <div v-if="isLoading" class="flex justify-center py-8">
+      <span class="loading loading-spinner"></span>
+    </div>
+
+    <div v-else class="grid grid-cols-2 gap-4 px-4 pb-[80px]">
       <GiftCard 
         v-for="gift in gifts" 
         :key="gift.id"

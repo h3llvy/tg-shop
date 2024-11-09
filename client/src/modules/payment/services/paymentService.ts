@@ -6,15 +6,12 @@ class PaymentService {
 
   public async createPaymentAsync(amount: number, giftId: string, giftName: string, asset: string): Promise<void> {
     try {
-      const payload = {
-        amount: Number(amount),
+      const { data } = await axios.post(`${this.baseUrl}`, {
+        amount,
         giftId,
         giftName,
-        asset,
-        payload: JSON.stringify({ giftId })
-      }
-
-      const { data } = await axios.post(`${this.baseUrl}`, payload)
+        asset
+      })
   
       if (!data.result?.mini_app_invoice_url) {
         throw new Error('URL инвойса не получен от сервера')
@@ -44,9 +41,9 @@ class PaymentService {
         window.Telegram.WebApp.onEvent('invoiceClosed', handleInvoiceClosed)
         telegramService.openTelegramLink(data.result.mini_app_invoice_url + '&mode=compact')
       })
-    } catch (error: any) {
+    } catch (error) {
       console.error('Ошибка создания платежа:', error)
-      throw new Error(error.response?.data?.error || error.message)
+      throw error
     }
   }
 }

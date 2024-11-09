@@ -1,12 +1,21 @@
 import type { IUser } from '@/shared/types/user'
 
+export type CryptoAsset = 'USDT' | 'TON' | 'BTC' | 'ETH'
+
 export interface IGift {
-  id: string
+  _id: string
   name: string
   description: string
-  price: number
-  imageUrl: string
-  status: 'available' | 'purchased' | 'gifted'
+  image: string
+  prices: {
+    [key in CryptoAsset]: number
+  }
+  category: string
+  rarity: string
+  availableQuantity: number
+  soldCount: number
+  isAvailable: boolean
+  bgColor: string
 }
 
 export interface IGiftHistory {
