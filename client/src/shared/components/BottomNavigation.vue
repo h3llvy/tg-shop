@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Vue3Lottie } from 'vue3-lottie'
-
+import type { Ref } from 'vue'
 
 // Импортируем JSON анимации
 import tabStoreAnimation from '@/shared/lottie-animations/tab-store.json'
@@ -14,52 +14,22 @@ const route = useRoute()
 const router = useRouter()
 
 const currentRoute = computed(() => route.name)
-const isInitialMount = ref(true)
 
-type LottieRef = {
+interface LottieRef {
   play: () => void;
   stop: () => void;
   goToAndStop: (frame: number) => void;
+  destroy: () => void;
 }
 
-const storeAnimationInstance = ref<LottieRef | null>(null)
-const giftsAnimationInstance = ref<LottieRef | null>(null)
-const leaderboardAnimationInstance = ref<LottieRef | null>(null)
-const profileAnimationInstance = ref<LottieRef | null>(null)
+// Создаем типизированный Record для анимаций
+type AnimationRefs = Record<string, Ref<LottieRef | null>>;
 
-// Создаем record для типизации animationInstances
-const animationInstances: Record<string, typeof storeAnimationInstance> = {
-  store: storeAnimationInstance,
-  gifts: giftsAnimationInstance,
-  leaderboard: leaderboardAnimationInstance,
-  profile: profileAnimationInstance
-}
-
-// При монтировании компонента устанавливаем начальное состояние
-onMounted(() => {
-  // Устанавливаем все анимации в последний кадр
-  Object.entries(animationInstances).forEach(([routeName, instance]) => {
-    if (routeName === currentRoute.value) {
-      // Для активного маршрута проигрываем анимацию один раз
-      instance.value?.play()
-    } else {
-      // Для неактивных устанавливаем первый кадр
-      instance.value?.goToAndStop(0)
-    }
-  })
-  isInitialMount.value = false
-})
-
-const navigate = async (_routeName: string) => {
-  try {
-    if (_routeName !== currentRoute.value) {
-      await router.push({ name: _routeName })
-      // Запускаем анимацию только для выбранной вкладки
-      animationInstances[_routeName]?.value?.play()
-    }
-  } catch (error) {
-    console.error('Ошибка навигации:', error)
-  }
+const animationInstances: AnimationRefs = {
+  store: ref(null),
+  gifts: ref(null),
+  leaderboard: ref(null),
+  profile: ref(null)
 }
 
 // Конфигурация для каждого пункта меню
@@ -68,45 +38,84 @@ const menuItems = [
     name: 'store', 
     animation: tabStoreAnimation, 
     label: 'Store',
-    ref: storeAnimationInstance 
   },
   { 
     name: 'gifts', 
     animation: tabGiftsAnimation, 
     label: 'Gifts',
-    ref: giftsAnimationInstance 
   },
   { 
     name: 'leaderboard', 
     animation: tabLeaderboardAnimation, 
     label: 'Leaderboard',
-    ref: leaderboardAnimationInstance 
   },
   { 
     name: 'profile', 
     animation: tabProfileAnimation, 
     label: 'Profile',
-    ref: profileAnimationInstance 
   }
 ]
 
-// Следим за изменением маршрута
-watch(currentRoute, (newRoute, oldRoute) => {
-  if (!isInitialMount.value && newRoute && typeof newRoute === 'string') {
-    // Останавливаем старую анимацию
-    if (oldRoute) {
-      animationInstances[oldRoute]?.value?.goToAndStop(0)
-    }
-    // Запускаем новую анимацию
-    const instance = animationInstances[newRoute]?.value
-    if (instance) {
-      instance.play()
+// Добавляем флаг для отслеживания первичной загрузки
+const isFirstLoad = ref(true)
+
+// Обработчик для ref анимации
+const handleAnimationRef = (el: any, itemName: string) => {
+  if (el) {
+    animationInstances[itemName].value = el as LottieRef
+    
+    // При первичной загрузке принудительно останавливаем все анимации
+    if (isFirstLoad.value) {
+      requestAnimationFrame(() => {
+        el.stop?.()
+        el.goToAndStop?.(0)
+      })
     }
   }
+}
+
+onMounted(() => {
+  // Принудительно останавливаем все анимации при монтировании
+  requestAnimationFrame(() => {
+    Object.values(animationInstances).forEach(instance => {
+      instance.value?.stop()
+      instance.value?.goToAndStop(0)
+    })
+    
+    // Снимаем флаг первичной загрузки после инициализации
+    isFirstLoad.value = false
+  })
 })
 
+const navigate = async (_routeName: string) => {
+  try {
+    if (_routeName !== currentRoute.value) {
+      // Останавливаем текущую анимацию если она есть
+      if (currentRoute.value && typeof currentRoute.value === 'string') {
+        const currentInstance = animationInstances[currentRoute.value]?.value
+        if (currentInstance) {
+          currentInstance.stop()
+          currentInstance.goToAndStop(0)
+        }
+      }
+      
+      await router.push({ name: _routeName })
+      
+      // Запускаем новую анимацию
+      const newInstance = animationInstances[_routeName]?.value
+      if (newInstance) {
+        newInstance.stop() // Сначала останавливаем на всякий случай
+        newInstance.goToAndStop(0) // Возвращаем в начальное положение
+        newInstance.play() // Запускаем анимацию
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка навигации:', error)
+  }
+}
+
 // Настройки для Lottie анимаций
-const getLottieOptions = (itemName: string) => ({
+const getLottieOptions = () => ({
   width: 26,
   height: 26,
   loop: false,
@@ -136,8 +145,8 @@ const getLottieOptions = (itemName: string) => ({
       >
         <Vue3Lottie
           :animation-data="item.animation"
-          :ref="(el) => item.ref.value = el"
-          :options="getLottieOptions(item.name)"
+          :ref="(el) => handleAnimationRef(el, item.name)"
+          :options="getLottieOptions()"
           :style="{
             filter: currentRoute === item.name ? 'invert(40%) sepia(93%) saturate(1352%) hue-rotate(198deg) brightness(119%) contrast(119%)' : 'none'
           }"
