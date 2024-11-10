@@ -6,7 +6,6 @@ import TonIcon from '@/modules/store/assets/icons/TON.svg'
 import UsdtIcon from '@/modules/store/assets/icons/USDT.svg'
 import { CurrencyDollarIcon } from '@heroicons/vue/24/solid'
 import { Vue3Lottie } from 'vue3-lottie'
-// Импортируем анимации для каждого подарка
 import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-cake.json'
 import redStarAnimation from '@/shared/lottie-animations/gift-red-star.json'
 import greenStarAnimation from '@/shared/lottie-animations/gift-green-star.json'

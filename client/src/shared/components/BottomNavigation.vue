@@ -2,21 +2,21 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-// Импортируем SVG иконки
-import StoreIcon from '@/shared/assets/Store.svg'
-import GiftIcon from '@/shared/assets/Gift.svg'
-import LeaderboardIcon from '@/shared/assets/Leaderbord.svg'
-import ProfileIcon from '@/shared/assets/Profile.svg'
+// Импортируем компоненты иконок
+import IconStore from './icons/IconStore.vue'
+import IconGift from './icons/IconGift.vue'
+import IconLeaderboard from './icons/IconLeaderboard.vue'
+import IconProfile from './icons/IconProfile.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const currentRoute = computed(() => route.name)
 
-const navigate = async (routeName: string) => {
+const navigate = async (_routeName: string) => {
   try {
-    if (routeName !== currentRoute.value) {
-      await router.push({ name: routeName })
+    if (_routeName !== currentRoute.value) {
+      await router.push({ name: _routeName })
     }
   } catch (error) {
     console.error('Ошибка навигации:', error)
@@ -24,10 +24,10 @@ const navigate = async (routeName: string) => {
 }
 
 const menuItems = [
-  { name: 'store', icon: StoreIcon, label: 'Store' },
-  { name: 'gifts', icon: GiftIcon, label: 'Gifts' },
-  { name: 'leaderboard', icon: LeaderboardIcon, label: 'Leaderboard' },
-  { name: 'profile', icon: ProfileIcon, label: 'Profile' }
+  { name: 'store', icon: IconStore, label: 'Store' },
+  { name: 'gifts', icon: IconGift, label: 'Gifts' },
+  { name: 'leaderboard', icon: IconLeaderboard, label: 'Leaderboard' },
+  { name: 'profile', icon: IconProfile, label: 'Profile' }
 ]
 </script>
 
@@ -46,17 +46,13 @@ const menuItems = [
         }"
         @click="navigate(item.name)"
       >
-        <!-- Иконка -->
-        <img 
-          :src="item.icon" 
+        <!-- Используем компонент иконки -->
+        <component 
+          :is="item.icon"
+          :color="currentRoute === item.name ? '#007AFF' : '#959595'"
           class="w-[26px] h-[26px]"
-          :class="{
-            'opacity-100 [&>*]:fill-[#007AFF]': currentRoute === item.name,
-            'opacity-65': currentRoute !== item.name
-          }"
         />
         
-        <!-- Текст -->
         <span 
           class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px]"
         >
