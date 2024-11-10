@@ -135,7 +135,7 @@ const backgroundStyle = {
         {{ gift.soldCount }} of {{ gift.availableQuantity + gift.soldCount }}
       </div>
 
-      <div class="flex justify-center items-center my-8">
+      <div class="flex justify-center items-center">
         <Vue3Lottie
           v-if="hasAnimation(gift.name)"
           :animationData="getGiftAnimation(gift.name)"
