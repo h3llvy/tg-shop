@@ -5,6 +5,12 @@ import EthIcon from '@/modules/store/assets/icons/ETH.svg'
 import TonIcon from '@/modules/store/assets/icons/TON.svg'
 import UsdtIcon from '@/modules/store/assets/icons/USDT.svg'
 import { CurrencyDollarIcon } from '@heroicons/vue/24/solid'
+import { Vue3Lottie } from 'vue3-lottie'
+// Импортируем анимации для каждого подарка
+import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-cake.json'
+import redStarAnimation from '@/shared/lottie-animations/gift-red-star.json'
+import greenStarAnimation from '@/shared/lottie-animations/gift-green-star.json'
+import blueStarAnimation from '@/shared/lottie-animations/gift-blue-star.json'
 
 const props = defineProps<{
   gift: IGift
@@ -57,11 +63,48 @@ const getBackgroundClass = (giftName: string) => {
 const getPrimaryAsset = (giftName: string) => {
   return assetMap[giftName as keyof typeof assetMap] || 'USDT'
 }
+
+// Создаем мапу анимаций для всех подарков
+const giftAnimationMap = {
+  'Delicious Cake': deliciousCakeAnimation,
+  'Red Star': redStarAnimation,
+  'Blue Star': blueStarAnimation,
+  'Green Star': greenStarAnimation
+} as const
+
+// Добавим типизацию для анимаций
+interface GiftAnimationMap {
+  [key: string]: any;
+  'Delicious Cake': typeof deliciousCakeAnimation;
+  'Red Star': typeof redStarAnimation;
+  'Blue Star': typeof blueStarAnimation;
+  'Green Star': typeof greenStarAnimation;
+}
+
+const lottieOptions = {
+  loop: true,
+  autoplay: true,
+  rendererSettings: {
+    preserveAspectRatio: 'xMidYMid slice',
+    progressiveLoad: true,
+  }
+}
+
+// Обновляем функцию получения анимации с новой типизацией
+const getGiftAnimation = (giftName: string) => {
+  const animations: GiftAnimationMap = giftAnimationMap
+  return animations[giftName] || deliciousCakeAnimation // Возвращаем deliciousCakeAnimation как fallback
+}
+
+// Проверяем, есть ли анимация для подарка
+const hasAnimation = (giftName: string): boolean => {
+  return giftName in giftAnimationMap
+}
 </script>
 
 <template>
   <div 
-    class="cursor-pointer  rounded-xl bg-white relative p-4"
+    class="cursor-pointer rounded-xl bg-white relative p-4"
     :class="getBackgroundClass(gift.name)"
   >
     <div class="text-right text-[13px] text-black/50 leading-[18px] tracking-[-0.08px]">
@@ -69,7 +112,17 @@ const getPrimaryAsset = (giftName: string) => {
     </div>
 
     <div class="flex justify-center items-center my-8">
+      <!-- Используем условный рендеринг для отображения либо анимации, либо статичной иконки -->
+      <Vue3Lottie
+        v-if="hasAnimation(gift.name)"
+        :animationData="getGiftAnimation(gift.name)"
+        :height="128"
+        :width="128"
+        :options="lottieOptions"
+        class="p-[5.333px]"
+      />
       <img 
+        v-else
         :src="getGiftIcon(gift.name)"
         :alt="gift.name"
         class="w-32 h-32 p-[5.333px]"
