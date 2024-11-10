@@ -10,8 +10,8 @@ const GIFTS = [
     prices: {
       USDT: 1,
       TON: 0.5,
-      BTC: 0.000024,
-      ETH: 0.00041
+      BTC: 1,
+      ETH: 1
     },
     category: 'cakes',
     rarity: 'common',
@@ -27,8 +27,8 @@ const GIFTS = [
     prices: {
       USDT: 2,
       TON: 1,
-      BTC: 0.000048,
-      ETH: 0.00082
+      BTC: 2,
+      ETH: 2
     },
     category: 'stars',
     rarity: 'epic',
@@ -44,8 +44,8 @@ const GIFTS = [
     prices: {
       USDT: 3,
       TON: 1.5,
-      BTC: 0.000072,
-      ETH: 0.00123
+      BTC: 3,
+      ETH: 3
     },
     category: 'stars',
     rarity: 'rare',
@@ -61,8 +61,8 @@ const GIFTS = [
     prices: {
       USDT: 4,
       TON: 2,
-      BTC: 0.000096,
-      ETH: 0.00164
+      BTC: 4,
+      ETH: 4
     },
     category: 'stars',
     rarity: 'legendary',

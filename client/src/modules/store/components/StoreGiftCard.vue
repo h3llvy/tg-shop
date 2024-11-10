@@ -17,8 +17,25 @@ const assetMap = {
   'Blue Star': 'ETH'
 } as const
 
-const getCryptoIcon = (giftName: string): any => {
-  const icons = {
+// Добавим типы для объектов с иконками и фонами
+interface IconMap {
+  [key: string]: any; // здесь any необходим, так как у нас смешанные типы иконок
+  'Delicious Cake': typeof UsdtIcon;
+  'Red Star': typeof TonIcon;
+  'Green Star': typeof CurrencyDollarIcon;
+  'Blue Star': typeof EthIcon;
+}
+
+interface BackgroundMap {
+  [key: string]: string;
+  'Delicious Cake': string;
+  'Red Star': string;
+  'Green Star': string;
+  'Blue Star': string;
+}
+
+const getCryptoIcon = (giftName: string) => {
+  const icons: IconMap = {
     'Delicious Cake': UsdtIcon,
     'Red Star': TonIcon,
     'Green Star': CurrencyDollarIcon,
@@ -28,7 +45,7 @@ const getCryptoIcon = (giftName: string): any => {
 }
 
 const getBackgroundClass = (giftName: string) => {
-  const backgrounds = {
+  const backgrounds: BackgroundMap = {
     'Delicious Cake': 'bg-gradient-to-b from-[rgba(254,159,65,0.20)] to-[rgba(254,159,65,0.10)]',
     'Green Star': 'bg-gradient-to-b from-[rgba(70,209,0,0.20)] to-[rgba(70,209,0,0.06)]',
     'Blue Star': 'bg-gradient-to-b from-[rgba(0,122,255,0.20)] to-[rgba(0,122,255,0.05)]',
@@ -68,12 +85,12 @@ const getPrimaryAsset = (giftName: string) => {
         <img 
           v-if="typeof getCryptoIcon(gift.name) === 'string'"
           :src="getCryptoIcon(gift.name)"
-          class="w-6 h-6 mr-2"
+          class="w-5 h-5 mr-2 object-contain"
         />
         <component 
           v-else
           :is="getCryptoIcon(gift.name)"
-          class="w-6 h-6 mr-2"
+          class="w-5 h-5 mr-2 text-white"
         />
         <span class="text-sm font-medium text-white">
           {{ gift.prices[getPrimaryAsset(gift.name)] }} {{ getPrimaryAsset(gift.name) }}
