@@ -17,9 +17,15 @@ const currentRoute = computed(() => route.name)
 
 interface LottieRef {
   play: () => void;
+  pause: () => void;
   stop: () => void;
-  goToAndStop: (frame: number) => void;
   destroy: () => void;
+  goToAndStop: (value: number, isFrame?: boolean) => void;
+  goToAndPlay: (value: number, isFrame?: boolean) => void;
+  setSpeed: (speed: number) => void;
+  setDirection: (direction: 'forward' | 'reverse') => void;
+  playSegments: (segments: [number, number] | [number, number][], forceFlag?: boolean) => void;
+  getDuration: (inFrames?: boolean) => number;
 }
 
 // Создаем типизированный Record для анимаций
@@ -59,6 +65,14 @@ const menuItems = [
 // Добавляем флаг для отслеживания первичной загрузки
 const isFirstLoad = ref(true)
 
+// Добавляем ref для отслеживания текущего кадра анимации
+const currentFrame = ref<Record<string, number>>({
+  store: 0,
+  gifts: 0,
+  leaderboard: 0,
+  profile: 0
+})
+
 // Обработчик для ref анимации
 const handleAnimationRef = (el: any, itemName: string) => {
   if (el) {
@@ -95,7 +109,7 @@ const navigate = async (_routeName: string) => {
         const currentInstance = animationInstances[currentRoute.value]?.value
         if (currentInstance) {
           currentInstance.stop()
-          currentInstance.goToAndStop(0)
+          currentInstance.goToAndStop(0, true)
         }
       }
       
@@ -104,9 +118,8 @@ const navigate = async (_routeName: string) => {
       // Запускаем новую анимацию
       const newInstance = animationInstances[_routeName]?.value
       if (newInstance) {
-        newInstance.stop() // Сначала останавливаем на всякий случай
-        newInstance.goToAndStop(0) // Возвращаем в начальное положение
-        newInstance.play() // Запускаем анимацию
+        // Воспроизводим только один раз определенный сегмент
+        newInstance.playSegments([0, 30], false) // false означает, что анимация не будет зациклена
       }
     }
   } catch (error) {
@@ -118,14 +131,27 @@ const navigate = async (_routeName: string) => {
 const getLottieOptions = () => ({
   width: 26,
   height: 26,
-  loop: false,
+  loop: false, // Важно: должно быть false
   autoplay: false,
+  segments: [0, 30], // Указываем сегмент анимации
   rendererSettings: {
     preserveAspectRatio: 'xMidYMid meet',
     clearCanvas: true,
     progressiveLoad: true,
   }
 })
+
+// Обработчик кадра анимации
+const handleEnterFrame = (e: { currentTime: number }, itemName: string) => {
+  currentFrame[itemName] = e.currentTime
+  const instance = animationInstances[itemName]?.value
+  
+  // Если достигли последнего кадра (29 - это последний кадр, так как анимация 30 кадров)
+  if (e.currentTime >= 29 && instance) {
+    instance.stop()
+    instance.goToAndStop(29, true) // Останавливаем на последнем кадре
+  }
+}
 </script>
 
 <template>
@@ -151,6 +177,7 @@ const getLottieOptions = () => ({
             filter: currentRoute === item.name ? 'invert(40%) sepia(93%) saturate(1352%) hue-rotate(198deg) brightness(119%) contrast(119%)' : 'none'
           }"
           class="w-[26px] h-[26px]"
+          @enter-frame="(e) => handleEnterFrame(e, item.name)"
         />
         <span 
           class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px] mt-1 transition-transform duration-200"
