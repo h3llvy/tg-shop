@@ -10,8 +10,12 @@ export class AuthService {
   private readonly p_userRepository: UserRepository
 
   constructor() {
+    const token = process.env.BOT_TOKEN
+    if (!token) {
+      throw new Error('BOT_TOKEN не задан')
+    }
+    this.p_botToken = token
     this.p_jwtSecret = process.env.JWT_SECRET || 'secret'
-    this.p_botToken = process.env.BOT_TOKEN || ''
     this.p_userRepository = new UserRepository()
   }
 

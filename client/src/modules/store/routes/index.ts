@@ -1,18 +1,16 @@
 import type { RouteRecordRaw } from 'vue-router'
-import StorePage from '../pages/StorePage.vue'
-import GiftDetailsPage from '../pages/GiftDetailsPage.vue'
 
 export const storeRoutes: RouteRecordRaw[] = [
   {
-    path: '/',
+    path: '/store',
     name: 'store',
-    component: StorePage,
+    component: () => import('../pages/StorePage.vue'),
     meta: { title: 'Store' }
   },
   {
-    path: '/gift/:id',
+    path: '/store/gift/:id',
     name: 'gift-details',
-    component: GiftDetailsPage,
+    component: () => import('../pages/GiftDetailsPage.vue'),
     meta: { 
       title: 'Gift Details',
       hideNavigation: true

@@ -1,10 +1,16 @@
 import { Schema, model } from 'mongoose'
 
-interface IGiftHistory {
+export enum GiftHistoryAction {
+  PURCHASE = 'purchase',
+  SEND = 'send'
+}
+
+export interface IGiftHistory {
   giftId: Schema.Types.ObjectId
-  userId: number // telegramId пользователя
-  action: 'view' | 'buy' | 'send'
-  createdAt: Date
+  userId: number
+  action: GiftHistoryAction
+  recipientId?: number
+  timestamp: Date
 }
 
 const giftHistorySchema = new Schema<IGiftHistory>({
@@ -13,10 +19,14 @@ const giftHistorySchema = new Schema<IGiftHistory>({
   action: { 
     type: String, 
     required: true,
-    enum: ['view', 'buy', 'send']
-  }
-}, {
-  timestamps: true
+    enum: Object.values(GiftHistoryAction)
+  },
+  recipientId: { type: Number },
+  timestamp: { type: Date, default: Date.now }
 })
 
-export const GiftHistory = model<IGiftHistory>('GiftHistory', giftHistorySchema) 
+giftHistorySchema.index({ giftId: 1 })
+giftHistorySchema.index({ userId: 1 })
+giftHistorySchema.index({ timestamp: -1 })
+
+export const GiftHistory = model<IGiftHistory>('GiftHistory', giftHistorySchema)

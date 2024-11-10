@@ -6,18 +6,18 @@ COPY package*.json ./
 # Образ для разработки
 FROM base as development
 RUN npm install
+# Копируем все файлы, включая ассеты
 COPY . .
+# Создаем символическую ссылку для ассетов в dist
+RUN mkdir -p dist && ln -s /app/assets /app/dist/assets
 CMD ["npm", "run", "dev"]
 
 # Образ для продакшена
 FROM base as production
-# Сначала устанавливаем ВСЕ зависимости (включая devDependencies)
 RUN npm install
-# Копируем исходники
 COPY . .
-# Собираем проект
 RUN npm run build
-# Удаляем devDependencies и оставляем только prod
+# Копируем ассеты в dist
+RUN cp -r assets dist/
 RUN npm prune --production
-# Запускаем собранное приложение
-CMD ["npm", "start"] 
+CMD ["npm", "start"]

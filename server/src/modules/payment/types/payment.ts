@@ -22,13 +22,10 @@ export interface IPaymentWebhook {
   fee: string
   fee_asset: string
   paid_anonymously: boolean
-  paid_btn_name?: string
-  paid_btn_url?: string
-  comment?: string
-  payload?: string
+  payload: string
   paid_at?: string
   created_at: string
-  expiration_date?: string
+  user_id?: number
 }
 
 export interface ICreateInvoiceResponse {
@@ -44,4 +41,29 @@ export interface ICreateInvoiceResponse {
   allow_comments: boolean
   allow_anonymous: boolean
   description: string
+}
+
+export interface IInvoice {
+  id: number
+  status: 'active' | 'paid' | 'expired'
+  hash: string
+  asset: string
+  amount: string
+  payload?: string
+  description?: string
+  created_at: Date
+  paid_at?: Date
+  paid_anonymously?: boolean
+  comment?: string
+}
+
+export interface IPayment {
+  invoiceId: number
+  status: 'pending' | 'completed' | 'failed'
+  amount: number
+  asset: string
+  giftId: string
+  userId: number
+  createdAt: Date
+  updatedAt: Date
 } 

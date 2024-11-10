@@ -1,5 +1,6 @@
 import { connect } from 'mongoose'
 import { Gift } from '../modules/database/models/Gift'
+import { GiftHistory, GiftHistoryAction } from '../modules/database/models/GiftHistory'
 import { config } from '../config'
 
 const GIFTS = [
@@ -71,7 +72,24 @@ const GIFTS = [
     image: 'https://placehold.co/400x400/blue/white?text=BlueStar',
     bgColor: 'bg-[#E3F2FD]'
   }
-] as const
+]
+
+// Тестовая история для каждого подарка
+const createHistoryForGift = (giftId: string) => [
+  {
+    giftId,
+    userId: 123456789,
+    action: GiftHistoryAction.PURCHASE,
+    timestamp: new Date()
+  },
+  {
+    giftId,
+    userId: 123456789,
+    action: GiftHistoryAction.SEND,
+    recipientId: 987654321,
+    timestamp: new Date()
+  }
+]
 
 export async function seedGiftsAsync() {
   try {
@@ -79,13 +97,22 @@ export async function seedGiftsAsync() {
     await connect(config.MONGODB_URI)
     console.log('✅ MongoDB подключена')
 
-    console.log('Удаление существующих подарков...')
-    await Gift.deleteMany({})
+    console.log('Удаление существующих подарков и истории...')
+    await Promise.all([
+      Gift.deleteMany({}),
+      GiftHistory.deleteMany({})
+    ])
 
     console.log('Добавление новых подарков...')
-    await Gift.insertMany(GIFTS)
+    const createdGifts = await Gift.insertMany(GIFTS)
 
-    console.log('✅ Подарки успешно добавлены')
+    console.log('Добавление тестовой истории...')
+    for (const gift of createdGifts) {
+      const history = createHistoryForGift(gift._id.toString())
+      await GiftHistory.insertMany(history)
+    }
+
+    console.log('✅ Подарки и история успешно добавлены')
   } catch (error) {
     console.error('❌ Ошибка:', error)
     throw error

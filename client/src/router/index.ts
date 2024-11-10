@@ -1,24 +1,39 @@
-import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 import { storeRoutes } from '@/modules/store/routes'
 import { giftRoutes } from '@/modules/gifts/routes'
 import { leaderboardRoutes } from '@/modules/leaderboard/routes'
-import { profileRoutes } from '@/modules/profile/routes'
+import  GiftPurchasedPage  from '@/modules/store/pages/GiftPurchasedPage.vue'
 
-// Объединяем все маршруты
-const routes: RouteRecordRaw[] = [
-  ...storeRoutes,
-  ...giftRoutes,
-  ...leaderboardRoutes,
-  ...profileRoutes
-]
-
-export const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes: [
+    {
+      path: '/',
+      redirect: '/store'
+    },
+    ...storeRoutes,
+    ...giftRoutes,
+    ...leaderboardRoutes,
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/modules/profile/pages/ProfilePage.vue')
+    },
+    {
+      path: '/gift-purchased',
+      name: 'gift-purchased',
+      component: () => import('@/modules/store/pages/GiftPurchasedPage.vue')
+    },
+    {
+      path: '/gifts/:id/purchased',
+      name: 'GiftPurchased',
+      component: GiftPurchasedPage,
+      props: true,
+      meta: {
+        hideNavigation: true
+      }
+    }
+  ]
 })
 
-// Глобальные хуки для управления заголовком страницы
-router.afterEach((to) => {
-  document.title = `${to.meta.title || 'Gift Shop'}`
-})
+export { router }

@@ -1,12 +1,13 @@
-import axios from 'axios'
+import { api } from '@/shared/services/apiService'
 import type { IGift } from '../types/gift'
+import type { IUserGift } from '../types/userGift'
 
 class GiftService {
-  private readonly baseUrl = `${import.meta.env.VITE_API_URL}/api/gifts`
+  private readonly baseUrl = '/api/gifts'
 
   public async getAllGiftsAsync(): Promise<IGift[]> {
     try {
-      const { data } = await axios.get(this.baseUrl)
+      const { data } = await api.get(this.baseUrl)
       return data.map(this.mapGiftResponse)
     } catch (error) {
       console.error('Ошибка получения подарков:', error)
@@ -16,10 +17,20 @@ class GiftService {
 
   public async getGiftByIdAsync(id: string): Promise<IGift> {
     try {
-      const { data } = await axios.get(`${this.baseUrl}/${id}`)
+      const { data } = await api.get(`${this.baseUrl}/${id}`)
       return this.mapGiftResponse(data)
     } catch (error) {
       console.error('Ошибка получения подарка:', error)
+      throw error
+    }
+  }
+
+  public async getUserGiftsAsync(): Promise<IUserGift[]> {
+    try {
+      const { data } = await api.get(`${this.baseUrl}/my`)
+      return data.map(this.mapUserGiftResponse)
+    } catch (error) {
+      console.error('Ошибка получения купленных подарков:', error)
       throw error
     }
   }
@@ -37,6 +48,18 @@ class GiftService {
       soldCount: gift.soldCount || 0,
       isAvailable: gift.isAvailable,
       bgColor: gift.bgColor
+    }
+  }
+
+  private mapUserGiftResponse(userGift: any): IUserGift {
+    return {
+      _id: userGift._id,
+      userId: userGift.userId,
+      gift: this.mapGiftResponse(userGift.gift),
+      purchaseDate: new Date(userGift.purchaseDate),
+      status: userGift.status,
+      recipientId: userGift.recipientId,
+      sentDate: userGift.sentDate ? new Date(userGift.sentDate) : undefined
     }
   }
 }

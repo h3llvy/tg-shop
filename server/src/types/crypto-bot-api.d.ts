@@ -41,4 +41,15 @@ declare module 'crypto-bot-api' {
     createInvoice(params: CreateInvoiceParams): Promise<Invoice>
     getInvoices(params?: { invoice_ids?: number[] }): Promise<{ items: Invoice[] }>
   }
+
+  export function checkSignature(
+    apiToken: string,
+    signature: string,
+    requestBody: unknown
+  ): boolean
+
+  export function createInvoice(
+    apiToken: string,
+    params: Record<string, unknown>
+  ): Promise<unknown>
 } 

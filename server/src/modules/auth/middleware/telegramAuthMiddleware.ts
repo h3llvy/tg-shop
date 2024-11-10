@@ -27,25 +27,34 @@ export const telegramAuthMiddleware = async (
 
     // Проверяем подпись только в production
     if (process.env.NODE_ENV === 'production') {
-      // Создаем проверочный хэш
-      const secret = crypto
-        .createHmac('sha256', 'WebAppData')
-        .update(process.env.BOT_TOKEN || '')
-        .digest()
+      if (!process.env.BOT_TOKEN) {
+        logger.logError('BOT_TOKEN не установлен')
+        res.status(500).json({ error: 'Ошибка конфигурации сервера' })
+        return
+      }
 
-      urlParams.delete('hash')
-      const checkString = Array.from(urlParams.entries())
+      const dataCheckString = Array.from(urlParams.entries())
+        .filter(([key]) => key !== 'hash')
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([key, value]) => `${key}=${value}`)
         .join('\n')
 
-      const signature = crypto
-        .createHmac('sha256', secret)
-        .update(checkString)
+      const secretKey = crypto
+        .createHmac('sha256', 'WebAppData')
+        .update(process.env.BOT_TOKEN)
+        .digest()
+
+      const generatedHash = crypto
+        .createHmac('sha256', secretKey)
+        .update(dataCheckString)
         .digest('hex')
 
-      if (signature !== hash) {
-        logger.logWarning('Неверная подпись', { signature, hash })
+      if (generatedHash !== hash) {
+        logger.logWarning('Неверная подпись', { 
+          expected: generatedHash,
+          received: hash,
+          dataCheckString 
+        })
         res.status(401).json({ error: 'Неверная подпись' })
         return
       }

@@ -107,12 +107,16 @@ services:
     volumes:
       - ./bot:/app
       - /app/node_modules
+      - ./bot/assets:/app/assets
     environment:
       - NODE_ENV=${NODE_ENV}
       - BOT_TOKEN=${BOT_TOKEN}
       - WEBAPP_URL=${WEBAPP_URL}
       - SERVER_URL=${SERVER_URL}
       - SUPPORT_CHAT_ID=${SUPPORT_CHAT_ID}
+      - BOT_ASSETS_URL=${BOT_ASSETS_URL}
+      - BOT_AVATAR_PATH=${BOT_AVATAR_PATH}
+      - BOT_START_IMAGE_PATH=${BOT_START_IMAGE_PATH}
     depends_on:
       - server
     <<: *default-logging

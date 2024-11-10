@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { IGift } from '../types/gift'
+import { getGiftIcon } from '@/shared/utils/giftIcons'
 
 const props = defineProps<{
   gift: IGift
@@ -13,31 +14,28 @@ const assetMap = {
   'Blue Star': 'ETH'
 } as const
 
-const primaryAsset = assetMap[props.gift.name] || 'USDT'
+const primaryAsset = assetMap[props.gift.name as keyof typeof assetMap] || 'USDT'
+
+const getAvailabilityText = (availableQuantity: number, soldCount: number, total: number) => {
+  const remaining = availableQuantity
+  return `${remaining} of ${total}`
+}
 </script>
 
 <template>
-  <router-link 
-    :to="{ name: 'gift-details', params: { id: gift._id }}" 
-    class="block rounded-xl p-4 transition-transform hover:scale-105"
-    :class="gift.bgColor"
-  >
-    <div class="relative">
-      <img :src="gift.image" :alt="gift.name" class="w-full rounded-lg mb-2">
-      <span class="absolute top-2 right-2 text-xs bg-white/80 rounded px-2 py-1">
-        {{ gift.soldCount || 0 }} of {{ gift.availableQuantity }}
-      </span>
-    </div>
-    
-    <h3 class="font-medium text-sm mb-1">{{ gift.name }}</h3>
-    
-    <div class="flex items-center justify-between">
-      <span class="text-sm font-bold">
+  <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+    <div class="flex flex-col items-center">
+      <img 
+        :src="getGiftIcon(gift.name)"
+        :alt="gift.name"
+        class="w-16 h-16 mb-2"
+      />
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white">
+        {{ gift.name }}
+      </h3>
+      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
         {{ gift.prices[primaryAsset] }} {{ primaryAsset }}
-      </span>
-      <span class="text-xs px-2 py-1 bg-white/50 rounded">
-        {{ gift.rarity }}
-      </span>
+      </div>
     </div>
-  </router-link>
+  </div>
 </template>

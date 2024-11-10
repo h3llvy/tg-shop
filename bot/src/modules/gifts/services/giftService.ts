@@ -1,47 +1,40 @@
-import { apiService } from '../../core/services/apiService'
-import { LoggerService } from '../../core/services/loggerService'
-import type { IGift, IGiftPurchase, IGiftSend } from '../types/gift'
+import axios from 'axios'
+import { IGift } from '../types/gift'
 
 export class GiftService {
-  private readonly p_logger: LoggerService
+  private readonly apiUrl: string
 
   constructor() {
-    this.p_logger = new LoggerService()
+    this.apiUrl = process.env.SERVER_URL || ''
   }
 
-  public async getGiftByIdAsync(_giftId: string): Promise<IGift> {
+  public async getGiftByIdAsync(giftId: string): Promise<IGift | null> {
     try {
-      return await apiService.getGiftAsync(_giftId)
+      const response = await axios.get(`${this.apiUrl}/api/gifts/${giftId}`)
+      return response.data
     } catch (error) {
-      this.p_logger.logError(error as Error, 'GiftService.getGiftByIdAsync')
-      throw error
+      console.error('Ошибка получения подарка:', error)
+      return null
     }
   }
 
-  public async purchaseGiftAsync(_purchase: IGiftPurchase): Promise<IGift> {
+  public async sendGiftAsync(
+    giftId: string,
+    fromUserId: string,
+    toUserId: string
+  ): Promise<boolean> {
     try {
-      return await apiService.purchaseGiftAsync(_purchase)
+      const response = await axios.post(`${this.apiUrl}/api/gifts/send`, {
+        giftId,
+        fromUserId,
+        toUserId
+      })
+      return response.data.success
     } catch (error) {
-      this.p_logger.logError(error as Error, 'GiftService.purchaseGiftAsync')
-      throw error
+      console.error('Ошибка отправки подарка:', error)
+      return false
     }
   }
+}
 
-  public async sendGiftAsync(_send: IGiftSend): Promise<IGift> {
-    try {
-      return await apiService.sendGiftAsync(_send.giftId, _send.toUserId)
-    } catch (error) {
-      this.p_logger.logError(error as Error, 'GiftService.sendGiftAsync')
-      throw error
-    }
-  }
-
-  public async getAllGiftsAsync(): Promise<IGift[]> {
-    try {
-      return await apiService.getAllGiftsAsync()
-    } catch (error) {
-      this.p_logger.logError(error as Error, 'GiftService.getAllGiftsAsync')
-      throw error
-    }
-  }
-} 
+export const giftService = new GiftService()

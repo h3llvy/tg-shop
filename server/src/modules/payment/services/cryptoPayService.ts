@@ -3,6 +3,16 @@ import { config } from '../../../config'
 import { LoggerService } from '../../core/services/loggerService'
 import { CryptoAsset } from '../types/payment'
 
+interface CreateInvoiceParams {
+  amount: string;
+  asset: string;
+  description?: string;
+  hidden_message?: string;
+  payload: string;
+  paid_btn_name?: 'viewItem' | 'openChannel' | 'openBot' | 'callback';
+  paid_btn_url?: string;
+}
+
 class CryptoPayService {
   private readonly p_client: CryptoBotAPI
   private readonly p_logger: LoggerService
@@ -32,35 +42,29 @@ class CryptoPayService {
     }
   }
 
-  public async createInvoiceAsync(amount: number, payload: string, giftName: string, asset: CryptoAsset) {
+  public async createInvoiceAsync(params: CreateInvoiceParams) {
     try {
-      this.p_logger.logInfo('Создание инвойса:', { amount, payload, giftName, asset })
+      this.p_logger.logInfo('Создание инвойса:', params)
       
-      const params = {
-        amount: amount.toString(),
-        asset,
-        description: `Purchasing a ${giftName}`,
-        payload,
-        paid_btn_name: 'viewItem' as const,
-        paid_btn_url: `${config.WEBAPP_URL}/payment/success`,
+      const invoiceParams = {
+        amount: params.amount,
+        asset: params.asset,
+        description: params.description,
+        payload: params.payload,
+        paid_btn_name: params.paid_btn_name as const,
+        paid_btn_url: params.paid_btn_url,
         allow_comments: false,
         allow_anonymous: false,
         expires_in: 1800,
-        hidden_message: config.BOT_NAME
+        hidden_message: params.hidden_message
       }
 
-      this.p_logger.logInfo('Параметры инвойса:', params)
+      this.p_logger.logInfo('Параметры инвойса:', invoiceParams)
       
-      const invoice = await this.p_client.createInvoice(params)
-      
-      this.p_logger.logInfo('Ответ от Crypto Pay API:', invoice)
+      const invoice = await this.p_client.createInvoice(invoiceParams)
       
       if (!invoice) {
         throw new Error('Пустой ответ от Crypto Pay API')
-      }
-
-      if (!invoice.miniAppPayUrl) {
-        throw new Error(`URL для оплаты отсутствует в ответе: ${JSON.stringify(invoice)}`)
       }
 
       return {

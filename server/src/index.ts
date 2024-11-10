@@ -1,7 +1,9 @@
 import 'module-alias/register'
 import 'dotenv/config'
+import { createServer } from 'http'
 import { app } from './app'
 import { DatabaseService } from './modules/database/services/databaseService'
+import { WebSocketService } from './modules/websocket/services/websocketService'
 
 const PORT = Number(process.env.PORT) || 4000
 const HOST = process.env.HOST || '0.0.0.0'
@@ -40,8 +42,18 @@ validateEnvVariables()
 async function startServerAsync() {
   try {
     await DatabaseService.getInstance().connectAsync()
-    app.listen(PORT, HOST, () => {
+
+    // Создаем HTTP сервер
+    const httpServer = createServer(app)
+    
+    // Инициализируем WebSocket
+    const wsService = WebSocketService.getInstance()
+    wsService.initialize(httpServer)
+    
+    // Используем httpServer.listen вместо app.listen
+    httpServer.listen(PORT, HOST, () => {
       console.log(`🚀 Сервер запущен на http://${HOST}:${PORT}`)
+      console.log(`🔌 WebSocket сервер запущен на ws://${HOST}:${PORT}/ws`)
     })
   } catch (error) {
     console.error('❌ Ошибка запуска сервера:', error)

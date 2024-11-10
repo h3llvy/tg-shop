@@ -5,9 +5,9 @@ export class InitDataService {
   private readonly p_botToken: string
 
   constructor() {
-    const token = process.env.TELEGRAM_BOT_TOKEN
+    const token = process.env.BOT_TOKEN
     if (!token) {
-      throw new Error('Не задан TELEGRAM_BOT_TOKEN')
+      throw new Error('Не задан BOT_TOKEN')
     }
     this.p_botToken = token
   }

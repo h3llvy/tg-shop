@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { telegramService } from '@/shared/services/telegram/telegramService'
 import { authService } from '@/shared/services/auth/authService'
+import { webSocketService } from '@/shared/services/websocket/websocketService'
 import BottomNavigation from './shared/components/BottomNavigation.vue'
 
 const route = useRoute()
+const tg = window.Telegram?.WebApp
 
 const isDarkTheme = computed(() => {
   return telegramService.colorScheme === 'dark'
@@ -23,9 +25,37 @@ onMounted(async () => {
     
     // Авторизуемся
     await authService.loginAsync()
+
+    // Подключаем Socket.IO если есть пользователь
+    if (tg?.initDataUnsafe?.user?.id) {
+      const userId = tg.initDataUnsafe.user.id
+      console.log('Подключение Socket.IO для пользователя:', userId)
+      
+      // Подключаемся к Socket.IO серверу
+      webSocketService.connect(userId)
+      
+      // Слушаем системные события Socket.IO
+      webSocketService.onConnect(() => {
+        console.log('Socket.IO подключен')
+      })
+      
+      webSocketService.onDisconnect((reason) => {
+        console.log('Socket.IO отключен:', reason)
+      })
+      
+      webSocketService.onError((error) => {
+        console.error('Ошибка Socket.IO:', error)
+      })
+    } else {
+      console.warn('Нет данных пользователя для Socket.IO подключения')
+    }
   } catch (error) {
     console.error('Ошибка инициализации:', error)
   }
+})
+
+onUnmounted(() => {
+  webSocketService.disconnect()
 })
 </script>
 

@@ -1,54 +1,46 @@
 import axios from 'axios'
 import { telegramService } from '@/shared/services/telegram/telegramService'
 
+interface CreatePaymentParams {
+  amount: number;
+  asset: string;
+  giftId: string;
+  giftName: string;
+}
+
 class PaymentService {
   private readonly baseUrl = `${import.meta.env.VITE_API_URL}/api/payment`
+  private cryptoPayCallbacks: Map<string, () => void> = new Map()
 
-  public async createPaymentAsync(amount: number, giftId: string, giftName: string, asset: string): Promise<void> {
+  public async createPaymentAsync(params: CreatePaymentParams): Promise<any> {
     try {
-      const payload = {
-        amount: Number(amount),
-        giftId,
-        giftName,
-        asset,
-        payload: JSON.stringify({ giftId })
-      }
-
-      const { data } = await axios.post(`${this.baseUrl}`, payload)
-  
-      if (!data.result?.mini_app_invoice_url) {
-        throw new Error('URL инвойса не получен от сервера')
-      }
-  
-      return new Promise((resolve, reject) => {
-        const handleInvoiceClosed = (event: any) => {
-          window.Telegram.WebApp.offEvent('invoiceClosed', handleInvoiceClosed)
-          
-          switch(event.status) {
-            case 'paid':
-              console.log('Оплата успешна')
-              resolve()
-              break
-            case 'cancelled':
-              reject(new Error('Оплата отменена'))
-              break
-            case 'failed':
-              reject(new Error('Ошибка оплаты'))
-              break
-            case 'pending':
-              reject(new Error('Оплата в процессе'))
-              break
+      const { data } = await axios.post(
+        this.baseUrl, 
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Telegram-Web-App-Init-Data': window.Telegram?.WebApp?.initData || ''
           }
         }
-  
-        window.Telegram.WebApp.onEvent('invoiceClosed', handleInvoiceClosed)
-        telegramService.openTelegramLink(data.result.mini_app_invoice_url + '&mode=compact')
-      })
+      )
+
+      if (!data.success || !data.data?.pay_url) {
+        throw new Error(data.error || 'Payment creation failed')
+      }
+
+      // Открываем CryptoPay через Telegram WebApp
+      window.Telegram?.WebApp?.openTelegramLink(data.data.pay_url)
+
+      return {
+        success: true,
+        invoiceId: data.data.invoice_id
+      }
     } catch (error: any) {
       console.error('Ошибка создания платежа:', error)
-      throw new Error(error.response?.data?.error || error.message)
+      throw error
     }
   }
 }
-
 export const paymentService = new PaymentService()
+

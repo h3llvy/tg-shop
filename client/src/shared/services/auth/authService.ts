@@ -30,7 +30,7 @@ class AuthService {
 
   public async loginAsync(): Promise<void> {
     try {
-      const initData = telegramService.initData
+      const initData = window.Telegram?.WebApp?.initData
       if (!initData) {
         throw new Error('Отсутствуют данные инициализации')
       }

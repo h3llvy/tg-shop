@@ -41,11 +41,11 @@ export function setupGiftHandlers(bot: HandlerBot): void {
           return
         }
 
-        await giftService.sendGiftAsync({
+        await giftService.sendGiftAsync(
           giftId,
-          fromUserId: userId.toString(),
-          toUserId: targetUserId.toString()
-        })
+          userId.toString(),
+          targetUserId.toString()
+        )
 
         await userService.incrementGiftsSentAsync(userId)
         await userService.incrementGiftsReceivedAsync(targetUserId)
@@ -57,5 +57,6 @@ export function setupGiftHandlers(bot: HandlerBot): void {
       logger.logError(error as Error, 'giftHandlers.callback')
       await ctx.answerCallbackQuery('Произошла ошибка при обработке действия')
     }
+    
   })
 }

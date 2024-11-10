@@ -1,90 +1,54 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { hapticFeedback } from '@telegram-apps/sdk-vue'
-import { 
-  ShoppingBagIcon, 
-  GiftIcon, 
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  ShoppingBagIcon,
+  GiftIcon,
   GlobeAltIcon,
-  UserIcon 
+  UserIcon
 } from '@heroicons/vue/24/outline'
 
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
 
-const isActive = (routeName: string) => route.name === routeName
+const currentRoute = computed(() => route.name)
 
-const handleNavClick = (routeName: string) => {
-  // Тактильный отклик при навигации
-  hapticFeedback.impactOccurred('light')
-  router.push({ name: routeName })
+const navigate = async (routeName: string) => {
+  try {
+    if (routeName !== currentRoute.value) {
+      await router.push({ name: routeName })
+    }
+  } catch (error) {
+    console.error('Ошибка навигации:', error)
+  }
 }
+
+const menuItems = [
+  { name: 'store', icon: ShoppingBagIcon, label: 'Store' },
+  { name: 'gifts', icon: GiftIcon, label: 'My Gifts' },
+  { name: 'leaderboard', icon: GlobeAltIcon, label: 'Leaderboard' },
+  { name: 'profile', icon: UserIcon, label: 'Profile' }
+]
 </script>
 
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 h-[49px] bg-[rgba(241,241,242,0.75)] dark:bg-[rgba(30,30,30,0.75)] backdrop-blur-[50px] border-t border-gray-200 dark:border-gray-800">
-    <div class="flex justify-around h-full items-center">
-      <button 
-        @click="handleNavClick('store')"
-        class="flex flex-col items-center gap-0.5 px-6 active:scale-95 transition-transform"
+  <nav class="fixed bottom-0 left-0 right-0 bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-separator-light dark:border-separator-dark">
+    <div class="flex justify-around h-[49px]">
+      <button
+        v-for="item in menuItems"
+        :key="item.name"
+        class="flex-1 flex flex-col items-center justify-center"
+        :class="{
+          'text-accent-primary-light dark:text-accent-primary-dark': currentRoute === item.name,
+          'text-label-secondary-light dark:text-label-secondary-dark': currentRoute !== item.name
+        }"
+        @click="navigate(item.name)"
       >
-        <ShoppingBagIcon 
-          class="w-6 h-6 transition-colors"
-          :class="isActive('store') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
+        <component 
+          :is="item.icon" 
+          class="w-6 h-6"
         />
-        <span 
-          class="text-[10px] tracking-[-0.2px] transition-colors"
-          :class="isActive('store') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        >
-          Store
-        </span>
-      </button>
-
-      <button 
-        @click="handleNavClick('gifts')"
-        class="flex flex-col items-center gap-0.5 px-6 active:scale-95 transition-transform"
-      >
-        <GiftIcon 
-          class="w-6 h-6 transition-colors"
-          :class="isActive('gifts') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        />
-        <span 
-          class="text-[10px] tracking-[-0.2px] transition-colors"
-          :class="isActive('gifts') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        >
-          Gifts
-        </span>
-      </button>
-
-      <button 
-        @click="handleNavClick('leaderboard')"
-        class="flex flex-col items-center gap-0.5 px-6 active:scale-95 transition-transform"
-      >
-        <GlobeAltIcon 
-          class="w-6 h-6 transition-colors"
-          :class="isActive('leaderboard') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        />
-        <span 
-          class="text-[10px] tracking-[-0.2px] transition-colors"
-          :class="isActive('leaderboard') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        >
-          Leaderboard
-        </span>
-      </button>
-
-      <button 
-        @click="handleNavClick('profile')"
-        class="flex flex-col items-center gap-0.5 px-6 active:scale-95 transition-transform"
-      >
-        <UserIcon 
-          class="w-6 h-6 transition-colors"
-          :class="isActive('profile') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        />
-        <span 
-          class="text-[10px] tracking-[-0.2px] transition-colors"
-          :class="isActive('profile') ? 'text-[#0066FF]' : 'text-[#8E8E93]'"
-        >
-          Profile
-        </span>
+        <span class="text-[10px] mt-0.5">{{ item.label }}</span>
       </button>
     </div>
   </nav>

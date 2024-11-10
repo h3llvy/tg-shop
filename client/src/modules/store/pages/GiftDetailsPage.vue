@@ -1,11 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStoreStore } from '../stores/storeStore'
-import type { IGift } from '../types/store'
+import { giftService } from '@/modules/gifts/services/giftService'
+import { giftHistoryService } from '@/modules/gifts/services/giftHistoryService'
 import { paymentService } from '@/modules/payment/services/paymentService'
+import { webSocketService } from '@/shared/services/websocket/websocketService'
+import { getGiftIcon } from '@/shared/utils/giftIcons'
+import type { IGift } from '@/modules/gifts/types/gift'
+import type { IGiftHistory } from '@/modules/gifts/types/giftHistory'
 
-// Добавляем определение assetMap
+const route = useRoute()
+const router = useRouter()
+const tg = window.Telegram?.WebApp
+
+const gift = ref<IGift | null>(null)
+const history = ref<IGiftHistory[]>([])
+const isLoading = ref(true)
+const isProcessing = ref(false)
+const error = ref<string | null>(null)
+
 const assetMap = {
   'Delicious Cake': 'USDT',
   'Red Star': 'TON',
@@ -13,124 +26,141 @@ const assetMap = {
   'Blue Star': 'ETH'
 } as const
 
-const route = useRoute()
-const router = useRouter()
-const store = useStoreStore()
-const gift = ref<IGift | null>(null)
-const isLoading = ref(true)
-const isProcessing = ref(false)
-const recentActions = ref([
-  { 
-    user: { name: 'Alicia', avatar: null },
-    action: 'bought a gift',
-    timestamp: new Date()
+const getAvailabilityText = (availableQuantity: number, soldCount: number) => {
+  const total = availableQuantity + soldCount
+  const remaining = availableQuantity
+  if (remaining <= 0) {
+    return `0 of ${total} (Sold out)`
   }
-])
-
-const getGiftIcon = (category: string) => {
-  switch (category) {
-    case 'cakes':
-      return '🎂'
-    case 'stars':
-      return '⭐'
-    default:
-      return '🎁'
+  if (remaining <= 10) {
+    return `${remaining} of ${total} (Only ${remaining} left!)`
   }
+  return `${remaining} of ${total} available`
 }
 
-const getAvailabilityText = (quantity: number, soldCount: number) => {
-  const available = quantity - soldCount
-  return `${available} of ${quantity}`
+const setupMainButton = () => {
+  if (tg) {
+    tg.MainButton.text = 'Buy Gift'
+    tg.MainButton.show()
+    tg.MainButton.onClick(handlePurchase)
+  }
 }
 
 const handlePurchase = async () => {
   if (!gift.value || isProcessing.value) return
   
   isProcessing.value = true
+  
   try {
-    const assetMap = {
-      'Delicious Cake': 'USDT',
-      'Red Star': 'TON',
-      'Green Star': 'BTC',
-      'Blue Star': 'ETH'
-    } as const
+    const response = await paymentService.createPaymentAsync({
+      amount: gift.value.prices[assetMap[gift.value.name]],
+      asset: assetMap[gift.value.name],
+      giftId: gift.value._id,
+      giftName: gift.value.name
+    })
 
-    const asset = assetMap[gift.value.name] || 'USDT'
-    
-    await paymentService.createPaymentAsync(
-      gift.value.prices[asset],
-      gift.value._id,
-      gift.value.name,
-      asset
-    )
-    // Успешная оплата
-    isProcessing.value = false
-    // Показываем уведомление об успехе
-    window.Telegram.WebApp.showPopup({
-      title: 'Успешная покупка',
-      message: `Вы успешно приобрели ${gift.value.name}!`,
-      buttons: [{
-        type: 'ok'
-      }]
-    })
+    if (!response.success) {
+      throw new Error(response.error || 'Payment creation failed')
+    }
+
+    if (tg) {
+      tg.MainButton.showProgress()
+    }
+
   } catch (error) {
-    console.error('Ошибка покупки:', error)
+    console.error('Payment error:', error)
+    if (tg) {
+      tg.showAlert(`Payment error: ${error.message}`)
+    }
+  } finally {
     isProcessing.value = false
-    // Показываем ошибку пользователю
-    window.Telegram.WebApp.showPopup({
-      title: 'Ошибка',
-      message: error.message,
-      buttons: [{
-        type: 'ok'
-      }]
-    })
   }
 }
 
-// Создаем функцию для обработки нажатия кнопки назад
 const handleBackClick = () => {
   router.back()
 }
 
+// Обработчик успешной оплаты через WebSocket
+const handlePaymentSuccess = (data: PaymentSuccessData) => {
+  console.log('Получено уведомление об успешной оплате через Socket.IO:', data)
+  
+  if (tg) {
+    tg.MainButton.hideProgress()
+  }
+  
+  // Обновляем историю покупок
+  if (gift.value && data.giftId === gift.value._id) {
+    giftHistoryService.getGiftHistoryAsync(data.giftId)
+      .then(newHistory => {
+        history.value = newHistory
+      })
+      .catch(error => {
+        console.error('Ошибка обновления истории:', error)
+      })
+  }
+  
+  router.push({
+    name: 'GiftPurchased',
+    query: {
+      giftId: data.giftId,
+      paymentAmount: data.paymentAmount,
+      paymentAsset: data.paymentAsset
+    }
+  })
+}
+
 onMounted(async () => {
   try {
-    // Получаем WebApp
-    const webApp = window.Telegram?.WebApp
-    if (!webApp) {
-      console.error('Telegram WebApp не доступен')
+    const giftId = route.params.id as string
+    if (!giftId) {
+      error.value = 'Gift ID is required'
       return
     }
 
-    // Показываем кнопку назад и добавляем обработчик
-    webApp.BackButton.show()
-    webApp.BackButton.onClick(handleBackClick)
-    console.log('BackButton настроен:', webApp.BackButton.isVisible) // Для отладки
+    // Загружаем данные подарка и историю
+    const [giftData, historyData] = await Promise.all([
+      giftService.getGiftByIdAsync(giftId),
+      giftHistoryService.getGiftHistoryAsync(giftId)
+    ])
 
-    // Загружаем данные подарка
-    const giftId = route.params.id as string
-    const cachedGift = store.getGiftById(giftId)
-    
-    if (cachedGift) {
-      gift.value = cachedGift
-      isLoading.value = false
-    } else {
-      gift.value = await store.fetchGiftByIdAsync(giftId)
+    if (!giftData) {
+      error.value = 'Gift not found'
+      return
     }
+
+    gift.value = giftData
+    history.value = historyData
+
+    // Настраиваем Telegram WebApp
+    if (tg) {
+      tg.BackButton.show()
+      tg.BackButton.onClick(handleBackClick)
+      setupMainButton()
+    }
+
+    // Подписываемся на события Socket.IO
+    webSocketService.onPaymentSuccess(handlePaymentSuccess)
+
   } catch (error) {
-    console.error('Ошибка загрузки подарка:', error)
+    console.error('Error:', error)
+    error.value = 'Failed to load gift details'
   } finally {
     isLoading.value = false
   }
 })
 
 onUnmounted(() => {
-  // Убираем обработчик и скрываем кнопку при уходе со страницы
-  const webApp = window.Telegram?.WebApp
-  if (webApp?.BackButton) {
-    webApp.BackButton.offClick(handleBackClick) // Важно: удаляем именно тот обработчик, который добавили
-    webApp.BackButton.hide()
-    console.log('BackButton удален:', !webApp.BackButton.isVisible) // Для отладки
+  // Отключаем обработчики Telegram WebApp
+  if (tg) {
+    tg.MainButton.offClick(handlePurchase)
+    tg.BackButton.offClick(handleBackClick)
+    tg.MainButton.hide()
+    tg.BackButton.hide()
   }
+  
+  // Отписываемся от событий Socket.IO
+  webSocketService.offPaymentSuccess(handlePaymentSuccess)
 })
 </script>
 
@@ -144,16 +174,22 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <div v-else-if="error" class="p-4 text-center text-red-500">
+      {{ error }}
+    </div>
+
     <div v-else-if="gift" class="relative">
-      <!-- Фон по��арка -->
       <div 
         class="h-64 flex items-center justify-center"
         :class="gift.bgColor"
       >
-        <span class="text-8xl">{{ getGiftIcon(gift.category) }}</span>
+        <img 
+          :src="getGiftIcon(gift.name)"
+          :alt="gift.name"
+          class="w-24 h-24"
+        />
       </div>
 
-      <!-- Информация о подарке -->
       <div class="p-4">
         <div class="flex justify-between items-center mb-2">
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -169,55 +205,51 @@ onUnmounted(() => {
         </p>
 
         <div class="flex justify-between items-center mb-6">
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            {{ getAvailabilityText(gift.quantity, gift.soldCount) }}
+          <div 
+            class="text-sm"
+            :class="[
+              gift.availableQuantity > 0 
+                ? 'text-gray-500 dark:text-gray-400' 
+                : 'text-red-500'
+            ]"
+          >
+            {{ getAvailabilityText(gift.availableQuantity, gift.soldCount) }}
           </div>
           <div class="text-sm font-medium text-blue-500">
             {{ gift.rarity }}
           </div>
         </div>
 
-        <!-- История действий -->
         <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
-          <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+          <h2 class="text-lg font-semibold mb-4">
             Recently Actions
           </h2>
+          <div v-if="history.length === 0" class="text-center text-gray-500">
+            No actions yet
+          </div>
           <div 
-            v-for="(action, index) in recentActions" 
+            v-else
+            v-for="(item, index) in history" 
             :key="index"
             class="flex items-center py-2"
           >
             <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
-              {{ action.user.name[0] }}
+              {{ item.user.firstName[0] }}
             </div>
             <div>
-              <span class="font-medium text-gray-900 dark:text-white">{{ action.user.name }}</span>
-              <span class="text-gray-500 dark:text-gray-400"> {{ action.action }}</span>
+              <span class="font-medium">{{ item.user.firstName }}</span>
+              <span class="text-gray-500">
+                {{ item.action === 'purchase' ? ' bought this gift' : 
+                   item.action === 'send' ? ` sent to ${item.recipient.firstName}` :
+                   ' received this gift' }}
+              </span>
+              <div class="text-xs text-gray-400">
+                {{ new Date(item.timestamp).toLocaleString() }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Кнопка покупки -->
-      <div class="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-        <button
-          class="w-full py-3 bg-blue-500 text-white rounded-lg font-medium"
-          @click="handlePurchase"
-          :disabled="isProcessing"
-        >
-          <span v-if="isProcessing" class="flex items-center justify-center">
-            <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-              <!-- SVG loader -->
-            </svg>
-            Processing...
-          </span>
-          <span v-else>Buy a Gift</span>
-        </button>
-      </div>
-    </div>
-
-    <div v-else class="p-4 text-center text-gray-500 dark:text-gray-400">
-      Gift not found
     </div>
   </div>
 </template>

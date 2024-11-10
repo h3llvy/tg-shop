@@ -1,86 +1,58 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import { useStoreStore } from '../stores/storeStore'
+import { giftService } from '@/modules/gifts/services/giftService'
+import type { IGift } from '@/modules/gifts/types/gift'
+import GiftIcon from '@/modules/store/assets/icons/gift-icon.svg'
+import StoreGiftCard from '../components/StoreGiftCard.vue'
 
 const router = useRouter()
-const store = useStoreStore()
-const { gifts } = storeToRefs(store)
-const isLoading = ref(true)
-
-// Определяем основную валюту для каждого подарка
-const assetMap = {
-  'Delicious Cake': 'USDT',
-  'Red Star': 'TON',
-  'Green Star': 'BTC',
-  'Blue Star': 'ETH'
-} as const
-
-const getGiftIcon = (category: string) => {
-  switch (category) {
-    case 'cakes':
-      return '🎂'
-    case 'stars':
-      return '⭐'
-    default:
-      return '🎁'
-  }
-}
-
-const getAvailabilityText = (quantity: number, soldCount: number = 0) => {
-  return `${soldCount} of ${quantity}`
-}
-
-const navigateToGiftDetails = (giftId: string) => {
-  router.push(`/gift/${giftId}`)
-}
+const gifts = ref<IGift[]>([])
+const loading = ref(true)
 
 onMounted(async () => {
   try {
-    await store.fetchGiftsAsync()
+    gifts.value = await giftService.getAllGiftsAsync()
   } catch (error) {
     console.error('Ошибка загрузки подарков:', error)
   } finally {
-    isLoading.value = false
+    loading.value = false
   }
 })
+
+const handleGiftClick = (giftId: string) => {
+  router.push({ 
+    name: 'gift-details', 
+    params: { id: giftId.toString() }
+  })
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-primary-light dark:bg-bg-primary-dark">
-    <div class="px-4 py-6 text-center">
-      <h1 class="text-[32px] font-bold text-label-primary-light dark:text-label-primary-dark mb-2">
+  <div class="min-h-screen bg-white p-6">
+    <div class="flex flex-col items-center mb-8">
+      <img :src="GiftIcon" alt="Gift" class="w-11 h-12 mb-6" />
+      
+      <h1 class="text-2xl font-semibold text-black mb-2 text-center tracking-[-0.43px] leading-8">
         Buy and Send Gifts
       </h1>
-      <p class="text-[16px] leading-[22px] text-label-secondary-light dark:text-label-secondary-dark max-w-[280px] mx-auto">
-        Unique gifts for everyone by Crypto Pay.
+      
+      <p class="text-[17px] text-[#8E8E93] text-center leading-[22px] tracking-[-0.43px] max-w-[329px]">
+        Unique gifts for everyone by Crypto Pay
       </p>
     </div>
 
-    <div v-if="isLoading" class="flex justify-center py-8">
+    <div v-if="loading" class="flex justify-center py-8">
       <span class="loading loading-spinner"></span>
     </div>
 
-    <div v-else class="grid grid-cols-2 gap-4 px-4 pb-[80px]">
-      <div
+    <div v-else class="grid grid-cols-2 gap-3 px-0 py-4">
+      <StoreGiftCard 
         v-for="gift in gifts"
         :key="gift._id"
-        class="relative rounded-lg p-4 cursor-pointer transition-transform hover:scale-105"
-        :class="gift.bgColor"
-        @click="navigateToGiftDetails(gift._id)"
-      >
-        <div class="flex flex-col items-center">
-          <img :src="gift.image" :alt="gift.name" class="w-full rounded-lg mb-2">
-          <h3 class="font-medium text-center mb-1">{{ gift.name }}</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-300">
-            {{ getAvailabilityText(gift.availableQuantity, gift.soldCount) }}
-          </p>
-          <div class="mt-2 px-3 py-1 bg-blue-500 text-white rounded-full text-sm">
-            {{ gift.prices[assetMap[gift.name]] }} {{ assetMap[gift.name] }}
-          </div>
-        </div>
-      </div>
+        :gift="gift"
+        @click="handleGiftClick(gift._id)"
+      />
     </div>
   </div>
 </template>

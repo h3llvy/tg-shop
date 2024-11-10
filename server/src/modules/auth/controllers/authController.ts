@@ -13,12 +13,16 @@ export class AuthController {
     try {
       const { initData } = req.body
 
+      console.log('Полученные данные initData:', initData)
+
       if (!initData) {
         res.status(400).json({ error: 'Отсутствуют данные инициализации' })
         return
       }
 
       const isValid = await this.p_authService.validateInitDataAsync(initData)
+      console.log('Результат валидации:', isValid)
+
       if (!isValid) {
         res.status(401).json({ error: 'Неверные данные инициализации' })
         return
@@ -35,7 +39,7 @@ export class AuthController {
 
       res.json(response)
     } catch (error) {
-      console.error('Ошибка авторизации:', error)
+      console.error('Детали ошибки авторизации:', error)
       res.status(500).json({ error: 'Внутренняя ошибка сервера' })
     }
   }

@@ -1,10 +1,11 @@
 export interface IGift {
-  id: string
+  id: number
   name: string
   description: string
   price: number
-  imageUrl?: string
-  status: 'available' | 'purchased' | 'gifted'
+  image: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface IGiftPurchase {
