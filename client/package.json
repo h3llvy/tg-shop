@@ -15,7 +15,8 @@
     "socket.io-client": "^4.8.1",
     "vite-svg-loader": "^5.1.0",
     "vue": "^3.4.15",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vue3-lottie": "^3.3.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
