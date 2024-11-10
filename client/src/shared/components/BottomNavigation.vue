@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {
-  ShoppingBagIcon,
-  GiftIcon,
-  GlobeAltIcon,
-  UserIcon
-} from '@heroicons/vue/24/outline'
+
+// Импортируем SVG иконки
+import StoreIcon from '@/shared/assets/Store.svg'
+import GiftIcon from '@/shared/assets/Gift.svg'
+import LeaderboardIcon from '@/shared/assets/Leaderbord.svg'
+import ProfileIcon from '@/shared/assets/Profile.svg'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,34 +24,55 @@ const navigate = async (routeName: string) => {
 }
 
 const menuItems = [
-  { name: 'store', icon: ShoppingBagIcon, label: 'Store' },
-  { name: 'gifts', icon: GiftIcon, label: 'My Gifts' },
-  { name: 'leaderboard', icon: GlobeAltIcon, label: 'Leaderboard' },
-  { name: 'profile', icon: UserIcon, label: 'Profile' }
+  { name: 'store', icon: StoreIcon, label: 'Store' },
+  { name: 'gifts', icon: GiftIcon, label: 'Gifts' },
+  { name: 'leaderboard', icon: LeaderboardIcon, label: 'Leaderboard' },
+  { name: 'profile', icon: ProfileIcon, label: 'Profile' }
 ]
 </script>
 
 <template>
   <nav 
-    class="fixed bottom-0 left-0 right-0 bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-separator-light dark:border-separator-dark z-50"
+    class="fixed bottom-0 left-0 right-0 z-50 flex justify-center items-start self-stretch bg-white dark:bg-black border-t border-[#3C3C4326] dark:border-[#545458A6]"
   >
-    <div class="flex justify-around h-[49px]">
+    <div class="flex justify-around w-full">
       <button
         v-for="item in menuItems"
         :key="item.name"
-        class="flex-1 flex flex-col items-center justify-center"
+        class="flex flex-col items-center pt-[7px] min-w-[70px] transition-colors duration-200"
         :class="{
-          'text-accent-primary-light dark:text-accent-primary-dark': currentRoute === item.name,
-          'text-label-secondary-light dark:text-label-secondary-dark': currentRoute !== item.name
+          'text-[#007AFF]': currentRoute === item.name,
+          'text-[#545458A6]': currentRoute !== item.name
         }"
         @click="navigate(item.name)"
       >
-        <component 
-          :is="item.icon" 
-          class="w-6 h-6"
+        <!-- Иконка -->
+        <img 
+          :src="item.icon" 
+          class="w-[26px] h-[26px]"
+          :class="{
+            'opacity-100 [&>*]:fill-[#007AFF]': currentRoute === item.name,
+            'opacity-65': currentRoute !== item.name
+          }"
         />
-        <span class="text-[10px] mt-0.5">{{ item.label }}</span>
+        
+        <!-- Текст -->
+        <span 
+          class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px]"
+        >
+          {{ item.label }}
+        </span>
       </button>
     </div>
   </nav>
 </template>
+
+<style scoped>
+/* Добавляем SF Pro Text если нужно */
+@font-face {
+  font-family: 'SF Pro Text';
+  src: url('@/shared/assets/fonts/SF-Pro-Text-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+</style>
