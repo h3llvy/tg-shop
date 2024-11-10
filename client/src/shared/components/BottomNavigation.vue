@@ -32,7 +32,9 @@ const menuItems = [
 </script>
 
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-separator-light dark:border-separator-dark">
+  <nav 
+    class="fixed bottom-0 left-0 right-0 bg-bg-secondary-light dark:bg-bg-secondary-dark border-t border-separator-light dark:border-separator-dark z-50"
+  >
     <div class="flex justify-around h-[49px]">
       <button
         v-for="item in menuItems"
