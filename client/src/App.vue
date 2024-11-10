@@ -61,7 +61,7 @@ onUnmounted(() => {
 
 <template>
   <div 
-    class="app" 
+    class="app overflow-y-auto overflow-x-hidden" 
     :class="[
       { 'dark': isDarkTheme }, 
       { 'pb-[49px]': !p_hideNavigation }
@@ -73,10 +73,25 @@ onUnmounted(() => {
 </template>
 
 <style>
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Скрываем скролл на body */
+  height: 100%;
+}
+
 .app {
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--tg-theme-bg-color, #fff);
   color: var(--tg-theme-text-color, #000);
+  /* Добавляем стили для скролла */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Скрываем скролл для WebKit браузеров */
+.app::-webkit-scrollbar {
+  display: none;
 }
 
 .dark {

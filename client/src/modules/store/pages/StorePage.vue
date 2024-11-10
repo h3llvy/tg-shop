@@ -5,14 +5,22 @@ import { giftService } from '@/modules/gifts/services/giftService'
 import type { IGift } from '@/modules/gifts/types/gift'
 import GiftIcon from '@/modules/store/assets/icons/gift-icon.svg'
 import StoreGiftCard from '../components/StoreGiftCard.vue'
+import StoreSkeleton from '../components/StoreSkeleton.vue'
 
 const router = useRouter()
 const gifts = ref<IGift[]>([])
 const loading = ref(true)
+const isComponentReady = ref(false)
 
 onMounted(async () => {
   try {
+    // Загружаем данные
     gifts.value = await giftService.getAllGiftsAsync()
+    
+    // После загрузки данных ждем следующего кадра анимации
+    requestAnimationFrame(() => {
+      isComponentReady.value = true
+    })
   } catch (error) {
     console.error('Ошибка загрузки подарков:', error)
   } finally {
@@ -29,7 +37,9 @@ const handleGiftClick = (giftId: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white p-6">
+  <StoreSkeleton v-if="loading || !isComponentReady" />
+  
+  <div v-else class="min-h-screen bg-white p-6">
     <div class="flex flex-col items-center mb-8">
       <img :src="GiftIcon" alt="Gift" class="w-11 h-12 mb-6" />
       
@@ -42,11 +52,7 @@ const handleGiftClick = (giftId: string) => {
       </p>
     </div>
 
-    <div v-if="loading" class="flex justify-center py-8">
-      <span class="loading loading-spinner"></span>
-    </div>
-
-    <div v-else class="grid grid-cols-2 gap-3 px-0 py-4">
+    <div class="grid grid-cols-2 gap-3 px-0 py-4">
       <StoreGiftCard 
         v-for="gift in gifts"
         :key="gift._id"
