@@ -11,6 +11,8 @@ import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-ca
 import redStarAnimation from '@/shared/lottie-animations/gift-red-star.json'
 import greenStarAnimation from '@/shared/lottie-animations/gift-green-star.json'
 import blueStarAnimation from '@/shared/lottie-animations/gift-blue-star.json'
+import giftBgPattern from '@/shared/utils/giftbg.png'
+
 
 const props = defineProps<{
   gift: IGift
@@ -52,10 +54,10 @@ const getCryptoIcon = (giftName: string) => {
 
 const getBackgroundClass = (giftName: string) => {
   const backgrounds: BackgroundMap = {
-    'Delicious Cake': 'bg-gradient-to-b from-[rgba(254,159,65,0.20)] to-[rgba(254,159,65,0.10)]',
-    'Green Star': 'bg-gradient-to-b from-[rgba(70,209,0,0.20)] to-[rgba(70,209,0,0.06)]',
-    'Blue Star': 'bg-gradient-to-b from-[rgba(0,122,255,0.20)] to-[rgba(0,122,255,0.05)]',
-    'Red Star': 'bg-gradient-to-b from-[rgba(255,71,71,0.20)] to-[rgba(255,71,71,0.05)]'
+    'Delicious Cake': 'from-[rgba(254,159,65,0.20)] to-[rgba(254,159,65,0.10)]',
+    'Green Star': 'from-[rgba(70,209,0,0.20)] to-[rgba(70,209,0,0.06)]',
+    'Blue Star': 'from-[rgba(0,122,255,0.20)] to-[rgba(0,122,255,0.05)]',
+    'Red Star': 'from-[rgba(255,71,71,0.20)] to-[rgba(255,71,71,0.05)]'
   }
   return backgrounds[giftName] || ''
 }
@@ -100,54 +102,76 @@ const getGiftAnimation = (giftName: string) => {
 const hasAnimation = (giftName: string): boolean => {
   return giftName in giftAnimationMap
 }
+
+// Обновляем стили для фонового изображения с правильной типизацией
+const backgroundStyle = {
+  backgroundImage: `url(${giftBgPattern})`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
+  backgroundSize: 'cover',
+  mixBlendMode: 'multiply' as const,
+} as const
 </script>
 
 <template>
   <div 
-    class="cursor-pointer rounded-xl bg-white relative p-4"
-    :class="getBackgroundClass(gift.name)"
+    class="cursor-pointer rounded-xl bg-white relative p-4 overflow-hidden"
   >
-    <div class="text-right text-[13px] text-black/50 leading-[18px] tracking-[-0.08px]">
-      {{ gift.soldCount }} of {{ gift.availableQuantity + gift.soldCount }}
-    </div>
+    <!-- Фоновое изображение с opacity-5 (5%) -->
+    <div 
+      class="absolute inset-0 pointer-events-none bg-contain opacity-5"
+      :style="backgroundStyle"
+    ></div>
 
-    <div class="flex justify-center items-center my-8">
-      <!-- Используем условный рендеринг для отображения либо анимации, либо статичной иконки -->
-      <Vue3Lottie
-        v-if="hasAnimation(gift.name)"
-        :animationData="getGiftAnimation(gift.name)"
-        :height="128"
-        :width="128"
-        :options="lottieOptions"
-        class="p-[5.333px]"
-      />
-      <img 
-        v-else
-        :src="getGiftIcon(gift.name)"
-        :alt="gift.name"
-        class="w-32 h-32 p-[5.333px]"
-      />
-    </div>
+    <!-- Градиент -->
+    <div 
+      class="absolute inset-0 bg-gradient-to-b"
+      :class="getBackgroundClass(gift.name)"
+    ></div>
 
-    <div class="text-center">
-      <h3 class="text-[17px] font-semibold text-black leading-[22px] tracking-[-0.43px] mb-3">
-        {{ gift.name }}
-      </h3>
-      
-      <div class="inline-flex h-[30px] px-4 py-1.5 bg-[#007AFF] rounded-full items-center justify-center">
+    <!-- Контент -->
+    <div class="relative z-10">
+      <div class="text-right text-[13px] text-black/50 leading-[18px] tracking-[-0.08px]">
+        {{ gift.soldCount }} of {{ gift.availableQuantity + gift.soldCount }}
+      </div>
+
+      <div class="flex justify-center items-center my-8">
+        <Vue3Lottie
+          v-if="hasAnimation(gift.name)"
+          :animationData="getGiftAnimation(gift.name)"
+          :height="128"
+          :width="128"
+          :options="lottieOptions"
+          class="p-[5.333px]"
+        />
         <img 
-          v-if="typeof getCryptoIcon(gift.name) === 'string'"
-          :src="getCryptoIcon(gift.name)"
-          class="w-5 h-5 mr-2 object-contain"
-        />
-        <component 
           v-else
-          :is="getCryptoIcon(gift.name)"
-          class="w-5 h-5 mr-2 text-white"
+          :src="getGiftIcon(gift.name)"
+          :alt="gift.name"
+          class="w-32 h-32 p-[5.333px]"
         />
-        <span class="text-sm font-medium text-white">
-          {{ gift.prices[getPrimaryAsset(gift.name)] }} {{ getPrimaryAsset(gift.name) }}
-        </span>
+      </div>
+
+      <div class="text-center">
+        <h3 class="text-[17px] font-semibold text-black leading-[22px] tracking-[-0.43px] mb-3">
+          {{ gift.name }}
+        </h3>
+        
+        <div class="inline-flex h-[30px] px-4 py-1.5 bg-[#007AFF] rounded-full items-center justify-center">
+          <img 
+            v-if="typeof getCryptoIcon(gift.name) === 'string'"
+            :src="getCryptoIcon(gift.name)"
+            class="w-5 h-5 mr-2 object-contain"
+          />
+          <component 
+            v-else
+            :is="getCryptoIcon(gift.name)"
+            class="w-5 h-5 mr-2 text-white"
+          />
+          <span class="text-sm font-medium text-white">
+            {{ gift.prices[getPrimaryAsset(gift.name)] }} {{ getPrimaryAsset(gift.name) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
