@@ -1,25 +1,56 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="flex flex-col items-center justify-center min-h-screen p-4 relative">
+    <!-- Центральный контент -->
     <div class="text-center">
-      <img 
-        :src="getGiftIcon(gift?.name || 'default')"
-        :alt="gift?.name"
-        class="w-24 h-24 mb-4"
+      <Vue3Lottie
+        v-if="gift"
+        :animationData="deliciousCakeAnimation"
+        :height="100"
+        :width="100"
+        class="mb-4"
       />
-      <h1 class="text-2xl font-bold mb-2">Gift Purchased</h1>
-      <p class="text-gray-600 mb-8">
-        The {{ gift?.name }} gift was purchased for {{ amount }} {{ asset }}.
-      </p>
+      
+      <h1 class="text-[24px] font-semibold text-black leading-[30px] tracking-[-0.43px] mb-4">
+        Gift Purchased
+      </h1>
+      
+      <div class="text-[17px] text-[#8E8E93] leading-[22px] tracking-[-0.43px]">
+        <p class="mb-1">
+          The <span class="text-black">{{ gift?.name }}</span> gift was purchased
+        </p>
+        <p>
+          for <span class="text-black">{{ amount }} {{ asset }}</span>.
+        </p>
+      </div>
     </div>
-    <!-- Popup для отправки подарка -->
-    <div class="fixed bottom-20 left-4 right-4 bg-gray-800 text-white p-4 rounded-lg flex items-center justify-between">
+
+    <!-- Попап -->
+    <div 
+      v-if="showPopup"
+      class="fixed bottom-0 left-0 right-0 mx-auto flex w-[361px] h-[53px] px-4 py-[9px] items-center justify-between rounded-[14px] bg-[rgba(45,45,45,0.80)] backdrop-blur-[10px] mb-2"
+    >
       <div class="flex items-center">
-        <span class="text-2xl mr-2">🎁</span>
+        <img 
+          :src="cakePopupIcon" 
+          alt="Gift" 
+          class="w-7 h-7 mr-3"
+        />
         <div>
-          <div class="font-semibold">You Bought a Gift</div>
-          <div class="text-sm text-gray-300">Now send it to your friend.</div>
+          <div class="text-[14px] font-medium text-white leading-[18px] tracking-[-0.154px]">
+            You Bought a Gift
+          </div>
+          <div class="text-[14px] font-normal text-white leading-[18px] tracking-[-0.154px]">
+            Now send it to your friend.
+          </div>
         </div>
       </div>
+      
+      <button 
+        class="text-[#5AC8FA] text-[17px] leading-[22px] tracking-[-0.43px]"
+        @click="handleSendGift"
+      >
+        Send
+      </button>
     </div>
   </div>
 </template>
@@ -28,15 +59,30 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { giftService } from '@/modules/gifts/services/giftService'
-import { getGiftIcon } from '@/shared/utils/giftIcons'
+import type { IGift } from '@/modules/gifts/types/gift'
+import { Vue3Lottie } from 'vue3-lottie'
+import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-cake.json'
+import cakePopupIcon from '@/shared/assets/cake-popup.svg'
 
 const route = useRoute()
 const router = useRouter()
 const tg = window.Telegram?.WebApp
 
-const gift = ref(null)
+const gift = ref<IGift | null>(null)
 const amount = ref('')
 const asset = ref('')
+const showPopup = ref(true)
+
+// Исправляем опции для Lottie
+const lottieOptions = {
+  loop: true,
+  autoplay: true,
+  animationData: deliciousCakeAnimation,
+  rendererSettings: {
+    preserveAspectRatio: 'xMidYMid slice'
+  }
+}
+
 
 onMounted(async () => {
   const { giftId, paymentAmount, paymentAsset } = route.query
@@ -70,17 +116,21 @@ onMounted(async () => {
       color: "#f5f5f5",
       text_color: "#2481cc"
     })
-    tg.SecondaryButton.onClick(() => router.push('/'))
+    tg.SecondaryButton.onClick(() => router.push('/store'))
   }
+
+  // Скрываем попап через 5 секунд
+  setTimeout(() => {
+    showPopup.value = false
+  }, 5000)
 })
 
-// Очищаем обработчики при размонтировании
 onUnmounted(() => {
   if (tg) {
     tg.BackButton.offClick(() => router.back())
     tg.BackButton.hide()
     tg.MainButton.offClick(handleSendGift)
-    tg.SecondaryButton.offClick(() => router.push('/'))
+    tg.SecondaryButton.offClick(() => router.push('/store'))
     tg.MainButton.hide()
     tg.SecondaryButton.hide()
   }
@@ -91,16 +141,11 @@ const handleSendGift = async () => {
 
   try {
     const user = await tg.showContactPicker()
-    
     if (user) {
       tg.switchInlineQuery(gift.value._id, user.id)
     }
   } catch (error) {
     console.error('Error selecting contact:', error)
   }
-}
-
-const handleOpenStore = () => {
-  router.push('/')
 }
 </script>
