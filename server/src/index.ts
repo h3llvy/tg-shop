@@ -4,9 +4,13 @@ import { createServer } from 'http'
 import { app } from './app'
 import { DatabaseService } from './modules/database/services/databaseService'
 import { WebSocketService } from './modules/websocket/services/websocketService'
+import { LoggerService } from './modules/core/services/loggerService'
+import fs from 'fs'
+import path from 'path'
 
 const PORT = Number(process.env.PORT) || 4000
 const HOST = process.env.HOST || '0.0.0.0'
+const logger = new LoggerService()
 
 function validateEnvVariables() {
   const requiredVars = [
@@ -41,6 +45,25 @@ validateEnvVariables()
 // Затем запускаем сервер
 async function startServerAsync() {
   try {
+    // Проверяем наличие необходимых файлов
+    const staticPath = path.join(__dirname, '../static')
+    const avatarPath = path.join(staticPath, 'avatar.png')
+
+    if (!fs.existsSync(staticPath)) {
+      fs.mkdirSync(staticPath, { recursive: true })
+      logger.logInfo('Создана директория static')
+    }
+
+    if (!fs.existsSync(avatarPath)) {
+      logger.logError('Файл аватара не найден:', { path: avatarPath })
+      process.exit(1)
+    }
+
+    logger.logInfo('Статические файлы проверены:', { 
+      staticPath,
+      files: fs.readdirSync(staticPath)
+    })
+
     await DatabaseService.getInstance().connectAsync()
 
     // Создаем HTTP сервер
@@ -52,11 +75,11 @@ async function startServerAsync() {
     
     // Используем httpServer.listen вместо app.listen
     httpServer.listen(PORT, HOST, () => {
-      console.log(`🚀 Сервер запущен на http://${HOST}:${PORT}`)
-      console.log(`🔌 WebSocket сервер запущен на ws://${HOST}:${PORT}/ws`)
+      logger.logInfo(`🚀 Сервер запущен на http://${HOST}:${PORT}`)
+      logger.logInfo(`🔌 WebSocket сервер запущен на ws://${HOST}:${PORT}/ws`)
     })
   } catch (error) {
-    console.error('❌ Ошибка запуска сервера:', error)
+    logger.logError('❌ Ошибка запуска сервера:', error)
     process.exit(1)
   }
 }

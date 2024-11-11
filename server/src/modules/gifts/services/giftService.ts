@@ -5,6 +5,7 @@ import { UserGift } from '../../database/models/UserGift'
 import { LoggerService } from '../../core/services/loggerService'
 import type { IUserGift } from '../../database/models/UserGift'
 import mongoose from 'mongoose'
+import { SentGift } from '../../database/models/SentGift'
 
 export class GiftService {
   private readonly p_logger: LoggerService
@@ -208,6 +209,43 @@ export class GiftService {
     } catch (error) {
       this.p_logger.logError('Ошибка получения подарков пользователя:', error)
       throw error
+    }
+  }
+
+  public async sendGiftAsync(giftId: string, senderId: number, recipientId: number): Promise<void> {
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    try {
+      // Проверяем наличие подарка у отправителя
+      const userGift = await UserGift.findOne({ 
+        userId: senderId,
+        giftId,
+        status: 'purchased'
+      }).session(session)
+
+      if (!userGift) {
+        throw new Error('Gift not found or already sent')
+      }
+
+      // Помечаем подарок как отправленный
+      userGift.status = 'sent'
+      await userGift.save({ session })
+
+      // Создаем запись об отправленном подарке
+      await SentGift.create([{
+        giftId,
+        senderId,
+        recipientId,
+        status: 'sent'
+      }], { session })
+
+      await session.commitTransaction()
+    } catch (error) {
+      await session.abortTransaction()
+      throw error
+    } finally {
+      session.endSession()
     }
   }
 }

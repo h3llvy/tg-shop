@@ -1,11 +1,21 @@
 export interface IGift {
-  id: number
+  _id: string
   name: string
   description: string
-  price: number
   image: string
-  createdAt: Date
-  updatedAt: Date
+  prices: {
+    USDT: number
+    TON: number
+    BTC: number
+    ETH: number
+  }
+  isAvailable: boolean
+  availableQuantity: number
+  soldCount: number
+  status: 'available' | 'purchased' | 'gifted'
+  category: string
+  rarity: string
+  bgColor: string
 }
 
 export interface IGiftPurchase {

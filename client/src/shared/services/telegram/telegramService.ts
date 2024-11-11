@@ -77,6 +77,22 @@ class TelegramService {
     }
   }
 
+  public async sendGiftAsync(giftId: string): Promise<void> {
+    if (!this.p_webApp) {
+      throw new Error('Telegram WebApp не инициализирован')
+    }
+
+    try {
+      this.p_webApp.switchInlineQuery(
+        `gift_${giftId}`,
+        ['users', 'groups']
+      )
+    } catch (error) {
+      console.error('Ошибка отправки подарка:', error)
+      throw error
+    }
+  }
+
   get webApp(): Telegram.WebApp | undefined {
     return this.p_webApp
   }

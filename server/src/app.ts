@@ -10,6 +10,7 @@ import { giftHistoryRoutes } from './modules/gifts/routes/giftHistoryRoutes'
 import { LoggerService } from './modules/core/services/loggerService'
 import { errorMiddleware } from './modules/core/middleware/errorMiddleware'
 import path from 'path'
+import fs from 'fs'
 
 const app: Express = express()
 const logger = new LoggerService()
@@ -62,9 +63,28 @@ app.options('*', cors()) // Включить предварительную пр
 
 app.use(express.json())
 
-// Добавляем раздачу статических файлов
-app.use('/static', express.static(path.join(__dirname, '../static')))
-app.use('/assets', express.static('public/assets'))
+
+// Добавляем middleware для логирования запросов к статике
+app.use('/static', (req, res, next) => {
+  const fullPath = path.join(__dirname, '../static', req.path)
+  
+  logger.logInfo('Запрос статического файла:', {
+    path: req.path,
+    method: req.method,
+    fullPath,
+    exists: fs.existsSync(fullPath)
+  })
+  next()
+})
+
+// Настраиваем раздачу статических файлов
+app.use('/static', express.static(path.join(__dirname, '../static'), {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true,
+  fallthrough: false, // Возвращать 404 если файл не найден
+  index: false // Отключаем автоматическую отдачу index.html
+}))
 
 // Маршруты
 app.use('/api/auth', authRoutes)

@@ -33,12 +33,23 @@ const isLoading = ref(true)
 const isProcessing = ref(false)
 const error = ref<string | null>(null)
 
+// Добавляем интерфейс для данных об успешном платеже
+interface PaymentSuccessData {
+  giftId: string
+  paymentAmount: string
+  paymentAsset: string
+}
+
+// Исправляем типизацию для assetMap
 const assetMap = {
   'Delicious Cake': 'USDT',
   'Red Star': 'TON',
   'Green Star': 'BTC',
   'Blue Star': 'ETH'
 } as const
+
+type GiftName = keyof typeof assetMap
+type AssetType = typeof assetMap[GiftName]
 
 const getAvailabilityText = (availableQuantity: number, soldCount: number) => {
   const total = availableQuantity + soldCount
@@ -66,9 +77,12 @@ const handlePurchase = async () => {
   isProcessing.value = true
   
   try {
+    const giftName = gift.value.name as GiftName
+    const asset = assetMap[giftName]
+    
     const response = await paymentService.createPaymentAsync({
-      amount: gift.value.prices[assetMap[gift.value.name]],
-      asset: assetMap[gift.value.name],
+      amount: gift.value.prices[asset],
+      asset,
       giftId: gift.value._id,
       giftName: gift.value.name
     })
@@ -78,13 +92,21 @@ const handlePurchase = async () => {
     }
 
     if (tg) {
-      tg.MainButton.showProgress()
+      tg.MainButton.setParams({
+        text: 'Processing...',
+        is_visible: true,
+        is_active: false
+      })
     }
 
   } catch (error) {
     console.error('Payment error:', error)
-    if (tg) {
-      tg.showAlert(`Payment error: ${error.message}`)
+    if (tg && error instanceof Error) {
+      tg.MainButton.setParams({
+        text: 'Buy Gift',
+        is_visible: true,
+        is_active: true
+      })
     }
   } finally {
     isProcessing.value = false

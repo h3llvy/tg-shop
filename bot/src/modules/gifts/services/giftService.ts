@@ -1,11 +1,14 @@
 import axios from 'axios'
-import { IGift } from '../types/gift'
+import type { IGift } from '../types/gift'
+import { LoggerService } from '../../core/services/loggerService'
 
 export class GiftService {
   private readonly apiUrl: string
+  private readonly logger: LoggerService
 
   constructor() {
     this.apiUrl = process.env.SERVER_URL || ''
+    this.logger = new LoggerService()
   }
 
   public async getGiftByIdAsync(giftId: string): Promise<IGift | null> {
@@ -13,8 +16,18 @@ export class GiftService {
       const response = await axios.get(`${this.apiUrl}/api/gifts/${giftId}`)
       return response.data
     } catch (error) {
-      console.error('Ошибка получения подарка:', error)
+      this.logger.logError('Ошибка получения подарка:', error)
       return null
+    }
+  }
+
+  public async getAllAsync(): Promise<IGift[]> {
+    try {
+      const response = await axios.get(`${this.apiUrl}/api/gifts`)
+      return response.data
+    } catch (error) {
+      this.logger.logError('Ошибка получения списка подарков:', error)
+      return []
     }
   }
 

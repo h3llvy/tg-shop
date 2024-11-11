@@ -5,7 +5,6 @@ declare namespace Telegram {
     last_name?: string
     username?: string
     language_code?: string
-    is_premium?: boolean
   }
 
   interface WebAppInitData {
@@ -13,23 +12,43 @@ declare namespace Telegram {
     user?: WebAppUser
     receiver?: WebAppUser
     start_param?: string
-    auth_date?: string
-    hash?: string
+  }
+
+  interface MainButtonParams {
+    text: string
+    is_visible: boolean
+    color: string
+    text_color: string
+  }
+
+  interface SecondaryButtonParams extends MainButtonParams {
+    position: string
   }
 
   interface BackButton {
-    isVisible: boolean
-    show(): void
-    hide(): void
-    onClick(callback: () => void): void
-    offClick(callback: () => void): void
+    show: () => void
+    hide: () => void
+    onClick: (cb: () => void) => void
+    offClick: (cb: () => void) => void
+  }
+
+  interface MainButton {
+    show: () => void
+    hide: () => void
+    setParams: (params: MainButtonParams) => void
+    onClick: (cb: () => void) => void
+    offClick: (cb: () => void) => void
+  }
+
+  interface SecondaryButton {
+    show: () => void
+    hide: () => void
+    setParams: (params: SecondaryButtonParams) => void
+    onClick: (cb: () => void) => void
+    offClick: (cb: () => void) => void
   }
 
   interface WebApp {
-    ready(): void
-    expand(): void
-    close(): void
-    
     initData: string
     initDataUnsafe: WebAppInitData
     colorScheme: 'light' | 'dark'
@@ -37,40 +56,22 @@ declare namespace Telegram {
     viewportStableHeight: number
     isExpanded: boolean
     BackButton: BackButton
-    openInvoice(url: string): Promise<void>
-    showPopup(params: PopupParams): Promise<string>
-    showAlert(message: string): Promise<void>
-    showConfirm(message: string): Promise<boolean>
+    MainButton: MainButton
+    SecondaryButton: SecondaryButton
+    ready: () => void
+    expand: () => void
+    close: () => void
+    switchInlineQuery: (query: string, choose_chat_types?: string[]) => void
+    openTelegramLink: (url: string) => void
   }
-}
-
-interface TelegramWebApp {
-  initData: string
-  initDataUnsafe: {
-    query_id: string
-    user: {
-      id: number
-      first_name: string
-      last_name?: string
-      username?: string
-      language_code?: string
-    }
-    auth_date: string
-    hash: string
-  }
-  BackButton: {
-    show: () => void
-    hide: () => void
-    onClick: (callback: () => void) => void
-    offClick: (callback: () => void) => void
-  }
-  switchInlineQuery: (query: string, types: string[]) => void
 }
 
 declare global {
   interface Window {
     Telegram?: {
-      WebApp: TelegramWebApp
+      WebApp: Telegram.WebApp
     }
   }
-} 
+}
+
+export {} 

@@ -2,11 +2,13 @@ import { HandlerBot } from '../../../../../types/bot'
 import { giftService } from '../../../services/giftService'
 
 export const setupGiftCallbackHandlers = (bot: HandlerBot): void => {
-  bot.callbackQuery(/^view_gift:(.+)$/, async (ctx) => {
+  bot.callbackQuery(/^receive_gift:(.+)$/, async (ctx) => {
     try {
       const giftId = ctx.match[1]
-      const gift = await giftService.getGiftByIdAsync(giftId)
+      const userId = ctx.from.id
       
+      // Проверяем подарок
+      const gift = await giftService.getGiftByIdAsync(giftId)
       if (!gift) {
         await ctx.answerCallbackQuery({
           text: 'Gift not found',
@@ -15,18 +17,9 @@ export const setupGiftCallbackHandlers = (bot: HandlerBot): void => {
         return
       }
 
-      await ctx.answerCallbackQuery()
-      
-      // Отправляем сообщение с кнопкой открытия магазина
-      await ctx.reply(`🎁 ${gift.name}\n\nView this gift in our store!`, {
-        reply_markup: {
-          inline_keyboard: [[
-            {
-              text: '🎁 Open Gift Shop',
-              web_app: { url: `${process.env.WEBAPP_URL}/gifts/${gift.id}` }
-            }
-          ]]
-        }
+      // Открываем Web App для получения подарка
+      await ctx.answerCallbackQuery({
+        url: `${process.env.WEBAPP_URL}/gifts/${giftId}/receive`
       })
       
     } catch (error) {

@@ -5,6 +5,8 @@ import { LoggerService } from '../../core/services/loggerService'
 import { GiftService } from '../services/giftService'
 import { GiftHistoryService } from '../services/giftHistoryService'
 
+const logger = new LoggerService()
+
 export class GiftController {
   private readonly p_logger: LoggerService
   private readonly p_giftService: GiftService
@@ -26,26 +28,41 @@ export class GiftController {
     }
   }
 
-  public async getGiftByIdAsync(req: Request, res: Response) {
+  public async getByIdAsync(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
       
+      this.p_logger.logInfo('Получен запрос на подарок:', { 
+        id,
+        userAgent: req.headers['user-agent'],
+        isInline: id.startsWith('gift_')
+      })
+      
       if (!id) {
-        this.p_logger.logWarning('ID подарка не указан')
-        return res.status(400).json({ error: 'ID подарка не указан' })
+        this.p_logger.logWarning('ID подарка не предоставлен')
+        res.status(400).json({ error: 'ID подарка не предоставлен' })
+        return
       }
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        this.p_logger.logWarning('Неверный формат ID подарка:', id)
-        return res.status(400).json({ error: 'Неверный формат ID подарка' })
+      
+      // Обрабатываем inline ID
+      const realGiftId = id.startsWith('gift_') ? id.replace('gift_', '') : id
+      
+      // Проверяем валидность ID для MongoDB
+      if (!mongoose.Types.ObjectId.isValid(realGiftId)) {
+        this.p_logger.logWarning('Неверный формат ID подарка:', { id: realGiftId })
+        res.status(400).json({ error: 'Неверный формат ID подарка' })
+        return
       }
-
-      const gift = await Gift.findById(id)
+      
+      const gift = await Gift.findById(realGiftId)
+      
       if (!gift) {
-        this.p_logger.logWarning('Подарок не найден:', id)
-        return res.status(404).json({ error: 'Подарок не найден' })
+        this.p_logger.logWarning('Подарок не найден:', { id: realGiftId })
+        res.status(404).json({ error: 'Подарок не найден' })
+        return
       }
 
+      this.p_logger.logInfo('Подарок получен успешно:', { id: realGiftId })
       res.json(gift)
     } catch (error) {
       this.p_logger.logError('Ошибка получения подарка:', error)
@@ -76,13 +93,14 @@ export class GiftController {
     }
   }
 
-  public async getGiftHistoryAsync(req: Request, res: Response): Promise<void> {
+  public async getGiftHistoryAsync(req: Request, res: Response) {
     try {
       const { id } = req.params
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         this.p_logger.logWarning('Неверный формат ID подарка:', id)
-        return res.status(400).json({ error: 'Неверный формат ID подарка' })
+        res.status(400).json({ error: 'Неверный формат ID подарка' })
+        return
       }
 
       const history = await this.p_giftHistoryService.getGiftHistoryAsync(id)

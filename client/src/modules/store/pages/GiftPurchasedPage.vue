@@ -1,6 +1,16 @@
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen p-4 relative">
-    <!-- Центральный контент -->
+    <!-- Анимация эффекта покупки -->
+    <Vue3Lottie
+      v-if="showPurchaseEffect"
+      :animationData="effectGiftPurchasedAnimation"
+      :options="purchaseEffectOptions"
+      :height="300"
+      :width="300"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50"
+    />
+    
+    <!-- Существующий контент -->
     <div class="text-center">
       <Vue3Lottie
         v-if="gift"
@@ -62,18 +72,21 @@ import { giftService } from '@/modules/gifts/services/giftService'
 import type { IGift } from '@/modules/gifts/types/gift'
 import { Vue3Lottie } from 'vue3-lottie'
 import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-cake.json'
+import effectGiftPurchasedAnimation from '@/shared/lottie-animations/effect-gift-purchased.json'
 import cakePopupIcon from '@/shared/assets/cake-popup.svg'
+import { telegramService } from '@/shared/services/telegram/telegramService'
 
 const route = useRoute()
 const router = useRouter()
-const tg = window.Telegram?.WebApp
+const tg = telegramService.webApp
 
 const gift = ref<IGift | null>(null)
 const amount = ref('')
 const asset = ref('')
 const showPopup = ref(true)
+const showPurchaseEffect = ref(true)
 
-// Исправляем опции для Lottie
+// Настройки для анимаций
 const lottieOptions = {
   loop: true,
   autoplay: true,
@@ -83,6 +96,15 @@ const lottieOptions = {
   }
 }
 
+const purchaseEffectOptions = {
+  loop: false,
+  autoplay: true,
+  animationData: effectGiftPurchasedAnimation,
+  rendererSettings: {
+    preserveAspectRatio: 'xMidYMid slice',
+    progressiveLoad: true,
+  }
+}
 
 onMounted(async () => {
   const { giftId, paymentAmount, paymentAsset } = route.query
@@ -95,11 +117,9 @@ onMounted(async () => {
 
   // Настраиваем нативные кнопки Telegram
   if (tg) {
-    // Кнопка "Назад"
     tg.BackButton.show()
     tg.BackButton.onClick(() => router.back())
 
-    // Основная кнопка для отправки подарка
     tg.MainButton.setParams({
       text: "Send Gift",
       is_visible: true,
@@ -108,7 +128,6 @@ onMounted(async () => {
     })
     tg.MainButton.onClick(handleSendGift)
     
-    // Вторичная кнопка для возврата в магазин
     tg.SecondaryButton.setParams({
       text: "Open Store",
       is_visible: true,
@@ -123,6 +142,14 @@ onMounted(async () => {
   setTimeout(() => {
     showPopup.value = false
   }, 5000)
+
+  // Запускаем анимацию
+  setTimeout(() => {
+    showPurchaseEffect.value = true
+    setTimeout(() => {
+      showPurchaseEffect.value = false
+    }, 1500)
+  }, 100)
 })
 
 onUnmounted(() => {
@@ -137,15 +164,12 @@ onUnmounted(() => {
 })
 
 const handleSendGift = async () => {
-  if (!gift.value || !tg) return
+  if (!gift.value) return
 
   try {
-    const user = await tg.showContactPicker()
-    if (user) {
-      tg.switchInlineQuery(gift.value._id, user.id)
-    }
+    await telegramService.sendGiftAsync(gift.value._id)
   } catch (error) {
-    console.error('Error selecting contact:', error)
+    console.error('Error sending gift:', error)
   }
 }
 </script>
