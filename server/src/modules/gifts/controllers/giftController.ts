@@ -72,10 +72,11 @@ export class GiftController {
 
   public async getUserGiftsAsync(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.user?.id
+      const userId = Number(req.headers['x-user-id'])
+      
       if (!userId) {
-        this.p_logger.logWarning('Попытка получить подарки без авторизации')
-        res.status(401).json({ error: 'Пользователь не авторизован' })
+        this.p_logger.logWarning('Отсутствует ID пользователя')
+        res.status(400).json({ error: 'User ID is required' })
         return
       }
 

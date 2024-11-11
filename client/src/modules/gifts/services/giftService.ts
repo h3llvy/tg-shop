@@ -35,6 +35,16 @@ class GiftService {
     }
   }
 
+  public async getReceivedGiftsAsync(): Promise<IUserGift[]> {
+    try {
+      const { data } = await api.get(`${this.baseUrl}/received`)
+      return data.map(this.mapUserGiftResponse)
+    } catch (error) {
+      console.error('Ошибка при получении полученных подарков:', error)
+      throw error
+    }
+  }
+
   private mapGiftResponse(gift: any): IGift {
     return {
       _id: gift._id,

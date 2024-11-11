@@ -7,6 +7,7 @@ import type { IUserGift } from '../types/userGift'
 
 const router = useRouter()
 const gifts = ref<IUserGift[]>([])
+const receivedGifts = ref<IUserGift[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const selectedGift = ref<IUserGift | null>(null)
@@ -31,6 +32,7 @@ onMounted(async () => {
     }
 
     gifts.value = await giftService.getUserGiftsAsync()
+    receivedGifts.value = await giftService.getReceivedGiftsAsync()
     error.value = null
   } catch (err) {
     console.error('Ошибка загрузки подарков:', err)
@@ -56,7 +58,7 @@ onMounted(async () => {
       <span class="loading loading-spinner"></span>
     </div>
 
-    <div v-else-if="gifts.length === 0" class="text-center py-8">
+    <div v-else-if="gifts.length === 0 && receivedGifts.length === 0" class="text-center py-8">
       <p class="text-label-secondary-light dark:text-label-secondary-dark">
         You haven't purchased any gifts yet
       </p>
@@ -66,6 +68,38 @@ onMounted(async () => {
       <div 
         v-for="userGift in gifts" 
         :key="`${userGift.giftId}-${userGift.purchaseDate}`"
+        class="block rounded-xl p-4 transition-transform hover:scale-105"
+        :class="userGift.gift.bgColor"
+      >
+        <div class="relative">
+          <img :src="userGift.gift.image" :alt="userGift.gift.name" class="w-full rounded-lg mb-2">
+          <span class="absolute top-2 right-2 text-xs bg-white/80 rounded px-2 py-1">
+            {{ userGift.status }}
+          </span>
+        </div>
+        
+        <h3 class="font-medium text-sm mb-1">{{ userGift.gift.name }}</h3>
+        
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-label-secondary-light dark:text-label-secondary-dark">
+            {{ new Date(userGift.purchaseDate).toLocaleDateString() }}
+          </span>
+          <button 
+            v-if="userGift.status === 'purchased'"
+            class="btn btn-sm btn-primary"
+            @click="handleSend(userGift)"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="receivedGifts.length">
+      <h2>Received Gifts</h2>
+      <div 
+        v-for="userGift in receivedGifts" 
+        :key="userGift._id"
         class="block rounded-xl p-4 transition-transform hover:scale-105"
         :class="userGift.gift.bgColor"
       >

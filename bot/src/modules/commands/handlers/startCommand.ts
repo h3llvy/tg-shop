@@ -1,66 +1,63 @@
-import { InputFile } from 'grammy'
-import type { HandlerBot, BotContext } from '../../../types/bot'
-import { apiService } from '../../core/services/apiService'
+import { HandlerBot } from '../../../types/bot'
 import { LoggerService } from '../../core/services/loggerService'
-import { BOT_ASSETS } from '../../core/config/assets'
+import { InlineKeyboard } from 'grammy'
+import path from 'path'
+import fs from 'fs'
+import { InputFile } from 'grammy'
+import { UserService } from '../../core/services/userService'
 
-export const setupStartCommand = (bot: HandlerBot): void => {
-  const logger = new LoggerService()
+const logger = new LoggerService()
+const userService = new UserService()
 
-  bot.command('start', async (ctx: BotContext) => {
+export function setupStartCommand(bot: HandlerBot): void {
+  bot.command('start', async (ctx) => {
     try {
       if (!ctx.from) {
-        await ctx.reply('Error: Could not get user data')
+        logger.logWarning('No user data in context')
         return
       }
 
-      // Создаем пользователя через API сервера
-      await apiService.post('/api/users', {
-        telegramId: ctx.from.id,
-        firstName: ctx.from.first_name,
-        lastName: ctx.from.last_name || undefined,
-        username: ctx.from.username || undefined,
-        languageCode: ctx.from.language_code || undefined
+      const userId = ctx.from.id
+      const firstName = ctx.from.first_name
+      const lastName = ctx.from.last_name || ''
+      const username = ctx.from.username || ''
+      const languageCode = ctx.from.language_code || 'en'
+
+      await userService.createOrUpdateUserAsync({
+        telegramId: userId,
+        firstName,
+        lastName,
+        username,
+        languageCode
       })
 
-      // Устанавливаем начальное состояние сессии
-      ctx.session = {
-        step: 'idle',
-        giftData: null
-      }
+      logger.logInfo('User created/updated:', { telegramId: userId })
 
-      logger.logInfo('User created/updated:', { telegramId: ctx.from.id })
+      const startImagePath = path.resolve(__dirname, '../../../../assets/botstart.png')
       
-      const keyboard = {
-        inline_keyboard: [[
-          {
-            text: 'Open App',
-            web_app: { url: process.env.WEBAPP_URL || '' }
-          }
-        ]]
-      }
+      logger.logInfo('Trying to send photo:', {
+        path: startImagePath,
+        exists: fs.existsSync(startImagePath)
+      })
 
-      try {
-        logger.logInfo('Trying to send photo from:', BOT_ASSETS.START_IMAGE)
-        await ctx.replyWithPhoto(new InputFile(BOT_ASSETS.START_IMAGE), {
-          caption: '🎁 Here you can buy and send gifts to your friends.',
-          reply_markup: keyboard
-        })
-      } catch (photoError) {
-        logger.logError('Error sending photo:', {
-          error: photoError,
-          path: BOT_ASSETS.START_IMAGE,
-          exists: require('fs').existsSync(BOT_ASSETS.START_IMAGE)
-        })
-        // Отправляем только текст если картинка недоступна
-        await ctx.reply('🎁 Here you can buy and send gifts to your friends.', {
-          reply_markup: keyboard
-        })
-      }
+      const photo = new InputFile(startImagePath)
+      
+      const keyboard = new InlineKeyboard()
+        .webApp('🎁 Open Gift Shop', process.env.WEBAPP_URL || '')
 
+      await ctx.replyWithPhoto(photo, {
+        caption: '🎁 Welcome to Gift Shop!\n\nHere you can buy and send crypto gifts to your friends.',
+        reply_markup: keyboard
+      })
     } catch (error) {
       logger.logError('Error in start command:', error)
-      await ctx.reply('An error occurred while starting the bot. Please try again later.')
+      
+      const keyboard = new InlineKeyboard()
+        .webApp('🎁 Open Gift Shop', process.env.WEBAPP_URL || '')
+
+      await ctx.reply('🎁 Welcome to Gift Shop!\n\nHere you can buy and send crypto gifts to your friends.', {
+        reply_markup: keyboard
+      })
     }
   })
 }

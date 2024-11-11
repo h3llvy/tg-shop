@@ -66,10 +66,22 @@ app.use(express.json())
 
 // Добавляем middleware для логирования запросов к статике
 app.use('/static', (req, res, next) => {
-  // Добавляем CORS заголовки специально для статических файлов
+  // Добавляем CORS заголовки
   res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Methods', 'GET')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD')
+  res.header('Access-Control-Allow-Headers', '*')
+  
+  // Правильные заголовки для изображений
+  if (req.path.match(/\.(png|jpg|gif)$/i)) {
+    res.header('Content-Type', 'image/png')
+    res.header('Cache-Control', 'public, max-age=31536000')
+    res.header('Expires', new Date(Date.now() + 31536000000).toUTCString())
+    res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Type')
+    res.header('X-Content-Type-Options', 'nosniff')
+    
+    // Добавляем заголовки для поддержки range requests
+    res.header('Accept-Ranges', 'bytes')
+  }
   
   const fullPath = path.join(__dirname, '../static', req.path)
   
@@ -77,18 +89,24 @@ app.use('/static', (req, res, next) => {
     path: req.path,
     method: req.method,
     fullPath,
-    exists: fs.existsSync(fullPath)
+    exists: fs.existsSync(fullPath),
+    headers: res.getHeaders(),
+    size: fs.existsSync(fullPath) ? fs.statSync(fullPath).size : null
   })
   next()
 })
 
 // Настраиваем раздачу статических файлов
 app.use('/static', express.static(path.join(__dirname, '../static'), {
-  maxAge: '1d',
+  maxAge: '1y',
   etag: true,
   lastModified: true,
-  fallthrough: false, // Возвращать 404 если файл не найден
-  index: false // Отключаем автоматическую отдачу index.html
+  setHeaders: (res, path) => {
+    if (path.endsWith('.png')) {
+      res.set('Content-Type', 'image/png')
+      res.set('X-Content-Type-Options', 'nosniff')
+    }
+  }
 }))
 
 // Маршруты

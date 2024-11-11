@@ -41,11 +41,8 @@ export function setupGiftHandlers(bot: HandlerBot): void {
           return
         }
 
-        await giftService.sendGiftAsync(
-          giftId,
-          userId.toString(),
-          targetUserId.toString()
-        )
+        const userIdNumber = Number(targetUserId)
+        await giftService.sendGiftAsync(giftId, userId, userIdNumber, ctx.from.first_name)
 
         await userService.incrementGiftsSentAsync(userId)
         await userService.incrementGiftsReceivedAsync(targetUserId)

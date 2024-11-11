@@ -1,72 +1,79 @@
 import { HandlerBot } from '../../../../../types/bot'
-import { BOT_ASSETS } from '../../../../core/config/assets'
 import { giftService } from '../../../services/giftService'
-import type { IGift } from '../../../types/gift'
 import { LoggerService } from '../../../../core/services/loggerService'
-import { InlineQueryResultArticle, ParseMode } from 'grammy/types'
+import type { InlineQueryResultArticle } from 'grammy/types'
+import type { IUserGift } from '../../../types/userGift'
+
+// Используем прямую ссылку на аватарку
+const DEFAULT_THUMBNAIL = 'https://local-tuna-server.ru.tuna.am/static/avatar.png'
 
 export const setupInlineGiftHandlers = (bot: HandlerBot): void => {
   const logger = new LoggerService()
 
   bot.on('inline_query', async (ctx) => {
     try {
-      const query = ctx.inlineQuery.query
-      logger.logInfo('Получен inline запрос:', { query })
-
-      let gifts: IGift[] = []
-      if (query.startsWith('gift_')) {
-        const giftId = query.replace('gift_', '')
-        const gift = await giftService.getGiftByIdAsync(giftId)
-        gifts = gift ? [gift] : []
-      } else {
-        gifts = await giftService.getAllAsync()
+      const userId = ctx.from?.id
+      if (!userId) {
+        logger.logWarning('Отсутствует ID пользователя в inline запросе')
+        await ctx.answerInlineQuery([])
+        return
       }
 
-      const getGiftImage = (gift: IGift): string => {
-        // Используем предопределенные изображения из конфигурации
-        const giftImage = BOT_ASSETS.GIFT_IMAGES[gift.name as keyof typeof BOT_ASSETS.GIFT_IMAGES]
-        if (giftImage) {
-          return giftImage
-        }
-        // Если изображение не найдено в конфигурации, используем URL из gift
-        if (gift.image?.startsWith('https://')) {
-          return gift.image
-        }
-        // В крайнем случае используем плейсхолдер
-        return `https://placehold.co/400x400/pink/white?text=${encodeURIComponent(gift.name)}`
-      }
+      const username = ctx.from?.username
 
-      const results: InlineQueryResultArticle[] = gifts.map((gift: IGift) => ({
-        type: 'article',
-        id: String(gift._id),
-        title: gift.name,
-        description: `Send ${gift.name} (${gift.prices.USDT} USDT)`,
-        thumbnail_url: getGiftImage(gift),
-        thumbnail_width: 100,
-        thumbnail_height: 100,
+      logger.logInfo('Получен inline запрос:', {
+        userId,
+        username,
+        query: ctx.inlineQuery.query
+      })
+
+      // Получаем только подарки текущего пользователя
+      const userGifts = await giftService.getUserGiftsAsync(userId)
+      
+      // Фильтруем только купленные подарки
+      const availableGifts = userGifts.filter((gift: IUserGift) => 
+        gift.status === 'purchased' && 
+        gift.userId === userId
+      )
+
+      const results: InlineQueryResultArticle[] = availableGifts.map((userGift: IUserGift) => ({
+        type: 'article' as const,
+        id: String(userGift._id),
+        title: userGift.gift.name,
+        description: `Send ${userGift.gift.name} (Purchased on ${new Date(userGift.purchaseDate).toLocaleDateString()})`,
+        thumbnail_url: DEFAULT_THUMBNAIL,
+        thumbnail_width: 64,
+        thumbnail_height: 64,
         input_message_content: {
-          message_text: `🎁 I have a gift for you!\n\n${gift.name}\n\nTap the button below to receive it.`,
-          parse_mode: 'HTML' as ParseMode
+          message_text: `🎁 ${userGift.gift.name}\n\nTap the button below to receive your gift!`,
+          parse_mode: 'HTML'
         },
         reply_markup: {
           inline_keyboard: [[
             {
               text: '🎁 Receive Gift',
-              callback_data: `receive_gift:${gift._id}`
+              callback_data: `receive_gift:${userGift._id}`
             }
           ]]
         }
       }))
 
-      logger.logInfo('Подготовлены результаты для inline режима:', {
-        count: results.length,
-        firstResult: results[0]
+      logger.logInfo('Отправка inline результатов:', {
+        resultsCount: results.length,
+        userId,
+        firstResult: results[0] ? {
+          id: results[0].id,
+          type: results[0].type,
+          thumbnail_url: results[0].thumbnail_url
+        } : null
       })
 
       await ctx.answerInlineQuery(results, {
         cache_time: 1,
-        is_personal: true
-      })
+        is_personal: true,
+        switch_pm_text: 'Open Gift Shop',
+        switch_pm_parameter: 'gifts'
+      } as any)
     } catch (error) {
       logger.logError('Error in inline query handler:', error)
       await ctx.answerInlineQuery([])
