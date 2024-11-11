@@ -21,6 +21,7 @@ import tonIcon from '@/shared/assets/TON.svg'
 import ethIcon from '@/shared/assets/ETH.svg'
 import storeIcon from '@/shared/assets/StoreIcon.svg'
 import storeIconSent from '@/shared/assets/StoreIconSent.svg'
+import StoreGiftSkeleton from '../components/StoreGiftSkeleton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,6 +125,7 @@ const handlePaymentSuccess = (data: PaymentSuccessData) => {
 }
 
 onMounted(async () => {
+  isLoading.value = true
   try {
     const giftId = route.params.id as string
     if (!giftId) {
@@ -237,16 +239,10 @@ const getBackgroundClass = (giftName: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white">
-    <div v-if="isLoading" class="p-4">
-      <div class="animate-pulse">
-        <div class="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
-      </div>
-    </div>
-
-    <div v-else-if="error" class="p-4 text-center text-red-500">
+  <StoreGiftSkeleton v-if="isLoading" />
+  
+  <div v-else class="min-h-screen bg-white">
+    <div v-if="error" class="p-4 text-center text-red-500">
       {{ error }}
     </div>
 
