@@ -13,6 +13,7 @@ import blueStarAnimation from '@/shared/lottie-animations/gift-blue-star.json'
 import giftBgPattern from '@/shared/utils/giftbg.png'
 
 
+
 const props = defineProps<{
   gift: IGift
 }>()

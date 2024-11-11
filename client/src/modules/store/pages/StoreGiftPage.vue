@@ -8,6 +8,19 @@ import { webSocketService } from '@/shared/services/websocket/websocketService'
 import { getGiftIcon } from '@/shared/utils/giftIcons'
 import type { IGift } from '@/modules/gifts/types/gift'
 import type { IGiftHistory } from '@/modules/gifts/types/giftHistory'
+import { Vue3Lottie } from 'vue3-lottie'
+import deliciousCakeAnimation from '@/shared/lottie-animations/gift-delicious-cake.json'
+import redStarAnimation from '@/shared/lottie-animations/gift-red-star.json'
+import greenStarAnimation from '@/shared/lottie-animations/gift-green-star.json'
+import blueStarAnimation from '@/shared/lottie-animations/gift-blue-star.json'
+import giftBgPattern from '@/shared/utils/giftbg.png'
+
+// Добавляем импорты иконок
+import usdtIcon from '@/shared/assets/USDT.svg'
+import tonIcon from '@/shared/assets/TON.svg'
+import ethIcon from '@/shared/assets/ETH.svg'
+import storeIcon from '@/shared/assets/StoreIcon.svg'
+import storeIconSent from '@/shared/assets/StoreIconSent.svg'
 
 const route = useRoute()
 const router = useRouter()
@@ -162,10 +175,69 @@ onUnmounted(() => {
   // Отписываемся от событий Socket.IO
   webSocketService.offPaymentSuccess(handlePaymentSuccess)
 })
+
+// Маппинг иконок криптовалют
+const cryptoIcons = {
+  'USDT': usdtIcon,
+  'TON': tonIcon,
+  'ETH': ethIcon,
+} as const
+
+// Функция для получения иконки статуса
+const getStatusIcon = (action: string) => {
+  return action === 'send' ? storeIconSent : storeIcon
+}
+
+// Добавляем мапу анимаций
+const giftAnimationMap = {
+  'Delicious Cake': deliciousCakeAnimation,
+  'Red Star': redStarAnimation,
+  'Blue Star': blueStarAnimation,
+  'Green Star': greenStarAnimation
+} as const
+
+const lottieOptions = {
+  loop: true,
+  autoplay: true,
+  rendererSettings: {
+    preserveAspectRatio: 'xMidYMid slice',
+    progressiveLoad: true,
+  }
+}
+
+// Функция проверки наличия анимации
+const hasAnimation = (giftName: string): boolean => {
+  return giftName in giftAnimationMap
+}
+
+// Функция получения анимации
+const getGiftAnimation = (giftName: string) => {
+  return giftAnimationMap[giftName as keyof typeof giftAnimationMap] || deliciousCakeAnimation
+}
+
+// Стили для фонового изображения
+const backgroundStyle = {
+  backgroundImage: `url(${giftBgPattern})`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
+  backgroundSize: 'cover',
+  mixBlendMode: 'multiply' as const,
+} as const
+
+// Функция получения класса фона
+const getBackgroundClass = (giftName: string) => {
+  const backgrounds = {
+    'Delicious Cake': 'from-[rgba(254,159,65,0.20)] to-[rgba(254,159,65,0.10)]',
+    'Green Star': 'from-[rgba(70,209,0,0.20)] to-[rgba(70,209,0,0.06)]',
+    'Blue Star': 'from-[rgba(0,122,255,0.20)] to-[rgba(0,122,255,0.05)]',
+    'Red Star': 'from-[rgba(255,71,71,0.20)] to-[rgba(255,71,71,0.05)]'
+  }
+  return backgrounds[giftName as keyof typeof backgrounds] || ''
+}
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
+  <div class="min-h-screen bg-white">
     <div v-if="isLoading" class="p-4">
       <div class="animate-pulse">
         <div class="h-64 bg-gray-200 dark:bg-gray-800 rounded-lg mb-4"></div>
@@ -178,73 +250,100 @@ onUnmounted(() => {
       {{ error }}
     </div>
 
-    <div v-else-if="gift" class="relative">
-      <div 
-        class="h-64 flex items-center justify-center"
-        :class="gift.bgColor"
-      >
-        <img 
-          :src="getGiftIcon(gift.name)"
-          :alt="gift.name"
-          class="w-24 h-24"
-        />
-      </div>
+    <div v-else-if="gift" class="flex flex-col">
+      <!-- Карточка подарка -->
+      <div class="px-4 mb-4 pt-6">
+        <div class="relative w-[361px] h-[361px] mx-auto rounded-xl bg-white overflow-hidden">
+          <!-- Фоновое изображение -->
+          <div 
+            class="absolute inset-0 pointer-events-none bg-contain opacity-5"
+            :style="backgroundStyle"
+          ></div>
 
-      <div class="p-4">
-        <div class="flex justify-between items-center mb-2">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <!-- Градиент -->
+          <div 
+            class="absolute inset-0 bg-gradient-to-b"
+            :class="getBackgroundClass(gift.name)"
+          ></div>
+
+          <!-- Контент -->
+          <div class="relative z-10 p-4">
+            <!-- Анимация/Изображение подарка -->
+            <div class="flex justify-center items-center h-[320px]">
+              <Vue3Lottie
+                v-if="hasAnimation(gift.name)"
+                :animationData="getGiftAnimation(gift.name)"
+                :height="280"
+                :width="280"
+                :options="lottieOptions"
+              />
+              <img 
+                v-else
+                :src="getGiftIcon(gift.name)"
+                :alt="gift.name"
+                class="w-32 h-32 object-contain"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Название и количество в одной строке -->
+        <div class="mt-3 flex items-center gap-3">
+          <h1 class="text-2xl font-semibold text-black leading-8 tracking-[-0.43px]">
             {{ gift.name }}
           </h1>
-          <div class="px-3 py-1 bg-blue-500 text-white rounded-full">
-            {{ gift.prices[assetMap[gift.name]] }} {{ assetMap[gift.name] }}
-          </div>
-        </div>
-
-        <p class="text-gray-600 dark:text-gray-400 mb-4">
-          {{ gift.description }}
-        </p>
-
-        <div class="flex justify-between items-center mb-6">
           <div 
-            class="text-sm"
-            :class="[
-              gift.availableQuantity > 0 
-                ? 'text-gray-500 dark:text-gray-400' 
-                : 'text-red-500'
-            ]"
+            class="flex items-center justify-center px-2 py-1 rounded-full bg-[#007AFF1F] backdrop-blur-[25px]"
           >
-            {{ getAvailabilityText(gift.availableQuantity, gift.soldCount) }}
-          </div>
-          <div class="text-sm font-medium text-blue-500">
-            {{ gift.rarity }}
+            <span class="text-[14px] font-medium text-[#007AFF] leading-[22px] tracking-[-0.1px]">
+              {{ gift.soldCount }} of {{ gift.availableQuantity + gift.soldCount }}
+            </span>
           </div>
         </div>
+          
+        <p class="mt-3 text-[17px] text-[#8E8E93] leading-[22px] tracking-[-0.43px] mb-3">
+          Purchase this gift for the opportunity to give it to another user.
+        </p>
+      </div>
 
-        <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
-          <h2 class="text-lg font-semibold mb-4">
-            Recently Actions
-          </h2>
-          <div v-if="history.length === 0" class="text-center text-gray-500">
-            No actions yet
-          </div>
+      <!-- Разделитель на всю ширину -->
+      <div class="h-3 bg-[#EFEFF3] w-full"></div>
+
+      <!-- История действий -->
+      <div class="px-4 mt-6">
+        <h2 class="text-[13px] font-normal text-[#6D6D71] leading-[18px] tracking-[-0.08px] uppercase">
+          Recently Actions
+        </h2>
+
+        <div class="mt-4 space-y-4">
           <div 
-            v-else
             v-for="(item, index) in history" 
             :key="index"
-            class="flex items-center py-2"
+            class="flex items-start gap-3"
           >
-            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
-              {{ item.user.firstName[0] }}
+            <div class="relative">
+              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                {{ item.user.firstName[0] }}
+              </div>
+              <img 
+                :src="getStatusIcon(item.action)"
+                class="absolute -bottom-1 -right-1 w-4 h-4"
+                :alt="item.action"
+              />
             </div>
-            <div>
-              <span class="font-medium">{{ item.user.firstName }}</span>
-              <span class="text-gray-500">
-                {{ item.action === 'purchase' ? ' bought this gift' : 
-                   item.action === 'send' ? ` sent to ${item.recipient.firstName}` :
-                   ' received this gift' }}
+
+            <div class="flex flex-col">
+              <span class="text-[13px] text-[#8E8E93] leading-4 tracking-[-0.1px]">
+                {{ item.action === 'send' ? 'Send gift' : 'Buy gift' }}
               </span>
-              <div class="text-xs text-gray-400">
-                {{ new Date(item.timestamp).toLocaleString() }}
+              <div class="text-[17px] leading-[22px] tracking-[-0.442px]">
+                <span class="text-blue-500 font-medium">{{ item.user.firstName }}</span>
+                <span class="text-black font-medium">
+                  {{ item.action === 'send' ? ' sent gift to ' : ' bought a gift' }}
+                </span>
+                <span v-if="item.action === 'send'" class="text-blue-500 font-medium">
+                  {{ item.recipient.firstName }}
+                </span>
               </div>
             </div>
           </div>
