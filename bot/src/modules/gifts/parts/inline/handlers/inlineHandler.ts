@@ -15,26 +15,33 @@ export const setupInlineGiftHandlers = (bot: HandlerBot): void => {
 
       let gifts: IGift[] = []
       if (query.startsWith('gift_')) {
-        // Если передан ID подарка
         const giftId = query.replace('gift_', '')
         const gift = await giftService.getGiftByIdAsync(giftId)
         gifts = gift ? [gift] : []
       } else {
-        // Если запрос пустой или поисковый - показываем все доступные подарки
         gifts = await giftService.getAllAsync()
       }
 
-      logger.logInfo('Найдены подарки для inline режима:', { 
-        count: gifts.length,
-        query 
-      })
+      const getGiftImage = (gift: IGift): string => {
+        // Используем предопределенные изображения из конфигурации
+        const giftImage = BOT_ASSETS.GIFT_IMAGES[gift.name as keyof typeof BOT_ASSETS.GIFT_IMAGES]
+        if (giftImage) {
+          return giftImage
+        }
+        // Если изображение не найдено в конфигурации, используем URL из gift
+        if (gift.image?.startsWith('https://')) {
+          return gift.image
+        }
+        // В крайнем случае используем плейсхолдер
+        return `https://placehold.co/400x400/pink/white?text=${encodeURIComponent(gift.name)}`
+      }
 
       const results: InlineQueryResultArticle[] = gifts.map((gift: IGift) => ({
         type: 'article',
         id: String(gift._id),
         title: gift.name,
         description: `Send ${gift.name} (${gift.prices.USDT} USDT)`,
-        thumbnail_url: gift.image || BOT_ASSETS.AVATAR_URL,
+        thumbnail_url: getGiftImage(gift),
         thumbnail_width: 100,
         thumbnail_height: 100,
         input_message_content: {
@@ -51,9 +58,14 @@ export const setupInlineGiftHandlers = (bot: HandlerBot): void => {
         }
       }))
 
+      logger.logInfo('Подготовлены результаты для inline режима:', {
+        count: results.length,
+        firstResult: results[0]
+      })
+
       await ctx.answerInlineQuery(results, {
-        cache_time: 1, // Кэшировать результат 1 секунду
-        is_personal: true // Результаты персональные для каждого пользователя
+        cache_time: 1,
+        is_personal: true
       })
     } catch (error) {
       logger.logError('Error in inline query handler:', error)

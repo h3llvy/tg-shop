@@ -66,6 +66,11 @@ app.use(express.json())
 
 // Добавляем middleware для логирования запросов к статике
 app.use('/static', (req, res, next) => {
+  // Добавляем CORS заголовки специально для статических файлов
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'GET')
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
+  
   const fullPath = path.join(__dirname, '../static', req.path)
   
   logger.logInfo('Запрос статического файла:', {
