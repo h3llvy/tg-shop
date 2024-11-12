@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --no-notify src/index.ts",
     "build": "tsc --noEmitOnError false || true",
-    "start": "node dist/index.js",
+    "start": "ts-node --transpile-only src/index.ts",
     "seed:gifts": "ts-node src/scripts/seedGifts.ts",
     "seed:leaderboard": "ts-node src/scripts/seedLeaderboard.ts",
     "seed:orders": "ts-node src/scripts/seedOrders.ts",
