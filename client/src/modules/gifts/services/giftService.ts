@@ -5,6 +5,38 @@ import type { IUserGift } from '../types/userGift'
 class GiftService {
   private readonly baseUrl = '/api/gifts'
 
+  private mapGiftResponse = (gift: any): IGift => {
+    return {
+      _id: gift._id,
+      name: gift.name,
+      description: gift.description,
+      image: gift.image,
+      prices: gift.prices,
+      category: gift.category,
+      rarity: gift.rarity,
+      availableQuantity: gift.availableQuantity,
+      soldCount: gift.soldCount || 0,
+      isAvailable: gift.isAvailable,
+      bgColor: gift.bgColor
+    }
+  }
+
+  private mapUserGiftResponse = (userGift: any): IUserGift => {
+    return {
+      _id: userGift._id,
+      userId: userGift.userId,
+      gift: this.mapGiftResponse(userGift.giftId || userGift.gift),
+      purchaseDate: userGift.purchaseDate,
+      status: userGift.status,
+      recipientId: userGift.recipientId,
+      sentDate: userGift.sentDate,
+      serialNumber: userGift.serialNumber,
+      totalAvailable: userGift.totalAvailable,
+      purchasePrice: userGift.purchasePrice,
+      purchaseAsset: userGift.purchaseAsset
+    }
+  }
+
   public async getAllGiftsAsync(): Promise<IGift[]> {
     try {
       const { data } = await api.get(this.baseUrl)
@@ -52,38 +84,6 @@ class GiftService {
     } catch (error) {
       console.error('Ошибка получения купленных подарков:', error)
       throw error
-    }
-  }
-
-  private mapGiftResponse(gift: any): IGift {
-    return {
-      _id: gift._id,
-      name: gift.name,
-      description: gift.description,
-      image: gift.image,
-      prices: gift.prices,
-      category: gift.category,
-      rarity: gift.rarity,
-      availableQuantity: gift.availableQuantity,
-      soldCount: gift.soldCount || 0,
-      isAvailable: gift.isAvailable,
-      bgColor: gift.bgColor
-    }
-  }
-
-  private mapUserGiftResponse(userGift: any): IUserGift {
-    return {
-      _id: userGift._id,
-      userId: userGift.userId,
-      gift: this.mapGiftResponse(userGift.gift),
-      purchaseDate: userGift.purchaseDate,
-      status: userGift.status,
-      recipientId: userGift.recipientId,
-      sentDate: userGift.sentDate,
-      serialNumber: userGift.serialNumber,
-      totalAvailable: userGift.totalAvailable,
-      purchasePrice: userGift.purchasePrice,
-      purchaseAsset: userGift.purchaseAsset
     }
   }
 }

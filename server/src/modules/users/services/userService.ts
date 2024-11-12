@@ -190,18 +190,19 @@ export class UserService {
         userId: _userId,
         status: 'purchased' // только купленные подарки
       })
-      .populate({
-        path: 'giftId',
-        model: 'Gift',
-        select: 'name description image prices isAvailable availableQuantity soldCount status rarity category bgColor'
-      })
+      .populate('giftId')
       .sort({ purchaseDate: -1 })
       .lean()
+
+      this.p_logger.logInfo('Получены купленные подарки:', { 
+        userId: _userId, 
+        count: gifts.length 
+      })
 
       return gifts.map(gift => ({
         ...gift,
         _id: gift._id.toString(),
-        gift: {
+        giftId: {
           ...gift.giftId,
           _id: gift.giftId._id.toString()
         }

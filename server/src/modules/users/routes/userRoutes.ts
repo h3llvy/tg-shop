@@ -97,6 +97,16 @@ router.get('/mypurchasedgifts', authMiddleware, async (req, res) => {
     const userService = new UserService()
     const gifts = await userService.getPurchasedGiftsAsync(req.user.id)
     
+    console.log('Отправка купленных подарков:', {
+      userId: req.user.id,
+      count: gifts.length,
+      gifts: gifts.map(g => ({
+        id: g._id,
+        name: g.giftId.name,
+        status: g.status
+      }))
+    })
+    
     res.json(gifts)
   } catch (error) {
     console.error('Ошибка получения купленных подарков:', error)
