@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { IUserProfile } from '@/shared/types/user'
 import { telegramService } from '@/shared/services/telegram/telegramService'
+import type { IUserGift } from '@/modules/gifts/types/userGift'
 
 export class ProfileService {
   private readonly p_apiUrl: string
@@ -35,6 +36,29 @@ export class ProfileService {
     } catch (error) {
       console.error('Ошибка получения аватара:', error)
       return null
+    }
+  }
+
+  public async getFullProfileAsync(): Promise<{
+    profile: IUserProfile,
+    gifts: IUserGift[]
+  }> {
+    try {
+      const { data } = await this.p_axiosInstance.get('/api/users/profile/full')
+      return data
+    } catch (error) {
+      console.error('Ошибка получения полного профиля:', error)
+      throw error
+    }
+  }
+
+  public async getGiftsHistoryAsync(): Promise<IUserGift[]> {
+    try {
+      const { data } = await this.p_axiosInstance.get('/api/users/gifts/history')
+      return data
+    } catch (error) {
+      console.error('Ошибка получения истории подарков:', error)
+      throw error
     }
   }
 }

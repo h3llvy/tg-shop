@@ -4,6 +4,7 @@ import { telegramService } from '@/shared/services/telegram/telegramService'
 import { profileService } from '../services/profileService'
 import type { IUserProfile } from '@/shared/types/user'
 import ProfileSkeleton from '../components/ProfileSkeleton.vue'
+import GiftsHistory from '../components/GiftsHistory.vue'
 
 const user = ref<IUserProfile | null>(null)
 const loading = ref(true)
@@ -22,8 +23,9 @@ const initProfileAsync = async () => {
       return
     }
 
-    // Получаем профиль с сервера
-    user.value = await profileService.getUserProfileAsync()
+    // Получаем полный профиль с подарками
+    const { profile, gifts } = await profileService.getFullProfileAsync()
+    user.value = profile
     
     // Получаем аватар
     avatarUrl.value = await profileService.getUserAvatarAsync(telegramUser.id)
@@ -99,6 +101,8 @@ onMounted(initProfileAsync)
           </div>
         </div>
       </div>
+
+      <GiftsHistory />
     </div>
 
     <div v-else-if="error" class="p-4 text-center text-red-500">

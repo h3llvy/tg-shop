@@ -2,6 +2,7 @@ import { TelegramService } from './telegramService'
 import { LoggerService } from '../../core/services/loggerService'
 import type { IUserAvatar, IUserResponse } from '../types/user'
 import { User } from '../../database/models'
+import { UserGift } from '../../database/models'
 
 export class UserService {
   private readonly p_telegramService: TelegramService
@@ -63,6 +64,50 @@ export class UserService {
     } catch (error) {
       this.p_logger.logError('Ошибка получения/обновления аватара:', error)
       return null
+    }
+  }
+
+  public async getUserProfileWithGiftsAsync(_userId: number): Promise<{
+    profile: IUser,
+    gifts: IUserGift[]
+  }> {
+    try {
+      // Получаем профиль пользователя
+      const user = await User.findOne({ telegramId: _userId })
+      if (!user) {
+        throw new Error('Пользователь не найден')
+      }
+
+      // Получаем подарки пользователя с полной информацией
+      const gifts = await UserGift.find({ userId: _userId })
+        .populate('giftId')
+        .sort({ purchaseDate: -1 })
+        .lean()
+
+      return {
+        profile: user,
+        gifts: gifts
+      }
+    } catch (error) {
+      this.p_logger.logError('Ошибка получения профиля с подарками:', error)
+      throw error
+    }
+  }
+
+  public async getUserGiftsHistoryAsync(_userId: number): Promise<IUserGift[]> {
+    try {
+      return await UserGift.find({
+        $or: [
+          { userId: _userId },
+          { recipientId: _userId }
+        ]
+      })
+      .populate('giftId')
+      .sort({ purchaseDate: -1 })
+      .lean()
+    } catch (error) {
+      this.p_logger.logError('Ошибка получения истории подарков:', error)
+      throw error
     }
   }
 }

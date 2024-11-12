@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { UserController } from '../controllers/userController'
 import { authMiddleware } from '../../auth/middleware/authMiddleware'
 import { User } from '../../database/models'
+import { UserService } from '../services/userService'
 
 const router = Router()
 const controller = new UserController()
@@ -29,6 +30,38 @@ router.get('/profile', authMiddleware, async (req, res) => {
     })
   } catch (error) {
     console.error('Ошибка получения профиля:', error)
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+  }
+})
+
+router.get('/profile/full', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Пользователь не авторизован' })
+    }
+
+    const userService = new UserService()
+    const profileData = await userService.getUserProfileWithGiftsAsync(req.user.id)
+    
+    res.json(profileData)
+  } catch (error) {
+    console.error('Ошибка получения полного профиля:', error)
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+  }
+})
+
+router.get('/gifts/history', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Пользователь не авторизован' })
+    }
+
+    const userService = new UserService()
+    const gifts = await userService.getUserGiftsHistoryAsync(req.user.id)
+    
+    res.json(gifts)
+  } catch (error) {
+    console.error('Ошибка получения истории подарков:', error)
     res.status(500).json({ error: 'Внутренняя ошибка сервера' })
   }
 })
