@@ -175,9 +175,9 @@ const sortedGifts = computed(() => {
       </button>
 
       <!-- Сетка подарков -->
-      <div class="px-4 mt-6">
+      <div class="flex flex-col px-4 py-6 gap-2 self-stretch">
         <!-- Сетка подарков -->
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-3 gap-2">
           <UserGiftCard
             v-for="gift in sortedGifts"
             :key="gift._id"
