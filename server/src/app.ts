@@ -11,6 +11,7 @@ import { LoggerService } from './modules/core/services/loggerService'
 import { errorMiddleware } from './modules/core/middleware/errorMiddleware'
 import path from 'path'
 import fs from 'fs'
+import { inlineRoutes } from './modules/gifts/routes/inlineRoutes'
 
 const app: Express = express()
 const logger = new LoggerService()
@@ -105,14 +106,16 @@ app.use('/static', express.static(path.join(__dirname, '../static'), {
     if (path.endsWith('.png')) {
       res.set('Content-Type', 'image/png')
       res.set('X-Content-Type-Options', 'nosniff')
+      res.set('Access-Control-Allow-Origin', '*')
     }
   }
 }))
 
 // Маршруты
 app.use('/api/auth', authRoutes)
-app.use('/api/gifts/:id/history', giftHistoryRoutes)
 app.use('/api/gifts', giftRoutes)
+app.use('/api/gifts/:id/history', giftHistoryRoutes)
+app.use('/api/gifts/inline', inlineRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/crypto-pay', webhookRoutes)
 app.use('/api/payment', paymentRoutes)
