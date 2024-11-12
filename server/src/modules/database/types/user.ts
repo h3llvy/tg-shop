@@ -10,4 +10,9 @@ export interface IUser {
   lastActive: Date
   createdAt: Date
   updatedAt: Date
+  avatar?: {
+    fileId?: string
+    url?: string
+    lastUpdated?: Date
+  }
 } 

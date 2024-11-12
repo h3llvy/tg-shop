@@ -1,4 +1,4 @@
-import 'module-alias/register'
+import './config/moduleAlias'
 import 'dotenv/config'
 import { createServer } from 'http'
 import { app } from './app'

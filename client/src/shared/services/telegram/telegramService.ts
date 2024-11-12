@@ -93,6 +93,12 @@ class TelegramService {
     }
   }
 
+  public getAuthHeaders(): Record<string, string> {
+    return {
+      'Telegram-Web-App-Init-Data': this.initData
+    }
+  }
+
   get webApp(): Telegram.WebApp | undefined {
     return this.p_webApp
   }
@@ -102,7 +108,11 @@ class TelegramService {
   }
 
   get initData(): string {
-    return this.p_webApp?.initData || ''
+    if (!this.p_webApp) {
+      console.warn('Telegram WebApp не инициализирован')
+      return ''
+    }
+    return this.p_webApp.initData || ''
   }
 
   get user(): Telegram.WebAppUser | undefined {

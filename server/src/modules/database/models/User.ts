@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose'
+import mongoose, { Schema, model } from 'mongoose'
 import type { IUser } from '../types/user'
 
 const userSchema = new Schema<IUser>({
@@ -29,6 +29,14 @@ const userSchema = new Schema<IUser>({
   lastActive: {
     type: Date,
     default: Date.now
+  },
+  avatar: {
+    fileId: String,
+    url: String,
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
   }
 }, {
   timestamps: true,
@@ -38,6 +46,17 @@ const userSchema = new Schema<IUser>({
 // Добавляем виртуальное поле для общего количества подарков
 userSchema.virtual('giftsCount').get(function() {
   return this.giftsReceived + this.giftsSent
+})
+
+// Добавим виртуальное поле для проверки актуальности аватара
+userSchema.virtual('isAvatarOutdated').get(function() {
+  if (!this.avatar?.lastUpdated) return true
+  
+  const lastUpdate = new Date(this.avatar.lastUpdated).getTime()
+  const now = new Date().getTime()
+  const dayInMs = 24 * 60 * 60 * 1000
+  
+  return now - lastUpdate > dayInMs
 })
 
 // Обязательно включаем виртуальные поля при использовании lean()

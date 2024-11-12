@@ -3,12 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useLeaderboardStore } from '../stores/leaderboardStore'
 import { MagnifyingGlassIcon, GiftIcon } from '@heroicons/vue/24/outline'
+import { profileService } from '@/modules/profile/services/profileService'
 
 const searchQuery = ref('')
 const store = useLeaderboardStore()
 const { users } = storeToRefs(store)
+const avatarCache = ref<Map<number, string>>(new Map())
 
-// Константы для цветов аватаров
+// Константы для цветов аватаров (запасной вариант)
 const AVATAR_COLORS = [
   'bg-blue-500',
   'bg-green-500',
@@ -38,6 +40,22 @@ const getMedal = (_position: number): string | null => {
   return _position <= 3 ? MEDALS[_position - 1] : null
 }
 
+// Загрузка аватара пользователя
+const loadUserAvatar = async (userId: number) => {
+  try {
+    if (!avatarCache.value.has(userId)) {
+      const avatarUrl = await profileService.getUserAvatarAsync(userId)
+      if (avatarUrl) {
+        avatarCache.value.set(userId, avatarUrl)
+      }
+    }
+    return avatarCache.value.get(userId)
+  } catch (error) {
+    console.error('Ошибка загрузки аватара:', error)
+    return null
+  }
+}
+
 // Фильтрация пользователей по поиску
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value
@@ -50,6 +68,10 @@ const filteredUsers = computed(() => {
 
 onMounted(async () => {
   await store.fetchLeaderboardAsync()
+  // Загружаем аватары для первых 20 пользователей
+  for (const user of users.value.slice(0, 20)) {
+    await loadUserAvatar(user.id)
+  }
 })
 </script>
 
@@ -78,10 +100,11 @@ onMounted(async () => {
         <div class="flex items-center">
           <div class="w-12 h-12 rounded-full overflow-hidden mr-3">
             <img 
-              v-if="user.avatar" 
-              :src="user.avatar" 
+              v-if="avatarCache.get(user.id)" 
+              :src="avatarCache.get(user.id)" 
               :alt="user.name"
               class="w-full h-full object-cover"
+              @error="avatarCache.delete(user.id)"
             >
             <div 
               v-else 

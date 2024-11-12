@@ -46,65 +46,15 @@ export class UserGiftService {
     return userGift
   }
 
-  public async sendGiftAsync(
-    giftId: string,
-    fromUserId: number,
-    toUserId: number,
-    message?: string
-  ): Promise<IUserGift> {
-    const userGift = await UserGift.findOne({
-      giftId,
-      userId: fromUserId,
-      status: 'purchased'
-    })
-
-    if (!userGift) throw new Error('Gift not found or already sent')
-
-    userGift.status = 'sent'
-    userGift.recipientId = toUserId
-    userGift.sentDate = new Date()
-    userGift.history.push({
-      action: 'send',
-      fromUserId,
-      toUserId,
-      date: new Date()
-    })
-
-    if (message) {
-      userGift.metadata.giftMessage = message
-    }
-
-    await userGift.save()
-    return userGift
+  public async getUserGiftsAsync(userId: number): Promise<IUserGift[]> {
+    return UserGift.find({ userId })
+      .populate('giftId')
+      .sort({ purchaseDate: -1 })
   }
 
-  public async receiveGiftAsync(
-    giftId: string,
-    fromUserId: number,
-    toUserId: number
-  ): Promise<IUserGift> {
-    const userGift = await UserGift.findOne({
-      giftId,
-      userId: fromUserId,
-      recipientId: toUserId,
-      status: 'sent'
-    })
-
-    if (!userGift) throw new Error('Gift not found or already received')
-
-    userGift.status = 'received'
-    userGift.receivedDate = new Date()
-    userGift.history.push({
-      action: 'receive',
-      fromUserId,
-      toUserId,
-      date: new Date()
-    })
-
-    // Передаем подарок получателю
-    userGift.userId = toUserId
-
-    await userGift.save()
-    return userGift
+  public async getGiftHistoryAsync(giftId: string): Promise<IUserGift[]> {
+    return UserGift.find({ giftId })
+      .populate('userId', 'firstName lastName username avatar')
+      .sort({ purchaseDate: -1 })
   }
 } 

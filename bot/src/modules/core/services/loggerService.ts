@@ -16,10 +16,7 @@ export class LoggerService {
     console.warn(`${timestamp} Предупреждение:`, _message, _data || '')
   }
 
-  public logDebug(_message: string, _data?: unknown): void {
-    if (process.env.NODE_ENV === 'development') {
-      const timestamp = new Date().toISOString()
-      console.debug(`${timestamp} Отладка:`, _message, _data || '')
-    }
+  public logDebug(message: string, context?: any): void {
+    console.log(new Date().toISOString(), 'Debug:', message, context ? `[Контекст: ${JSON.stringify(context)}]` : '')
   }
 } 

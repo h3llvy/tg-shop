@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from 'express'
-import { validate } from '@telegram-apps/init-data-node'
-import { config } from '../../../config'
 import { LoggerService } from '../../core/services/loggerService'
 
 const logger = new LoggerService()
@@ -10,36 +8,18 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
     const initData = req.headers['telegram-web-app-init-data']
     
     if (!initData || typeof initData !== 'string') {
-      logger.logWarning('Отсутствуют данные инициализации', { 
-        headers: req.headers 
-      })
+      logger.logWarning('Отсутствуют данные инициализации')
       res.status(401).json({ error: 'Отсутствуют данные инициализации' })
       return
     }
 
-    logger.logInfo('Получены данные инициализации:', { initData })
-
     // Парсим данные пользователя
     const params = new URLSearchParams(initData)
     const userStr = params.get('user')
-    const hash = params.get('hash')
-    const authDate = params.get('auth_date')
     
-    if (!userStr || !hash || !authDate) {
-      logger.logWarning('Неполные данные инициализации', { 
-        hasUser: !!userStr,
-        hasHash: !!hash,
-        hasAuthDate: !!authDate
-      })
-      res.status(401).json({ error: 'Неполные данные инициализации' })
-      return
-    }
-
-    // Проверяем подпись
-    const isValid = validate(initData, config.BOT_TOKEN)
-    if (!isValid) {
-      logger.logWarning('Неверная подпись', { hash })
-      res.status(401).json({ error: 'Неверная подпись' })
+    if (!userStr) {
+      logger.logWarning('Отсутствуют данные пользователя')
+      res.status(401).json({ error: 'Отсутствуют данные пользователя' })
       return
     }
 

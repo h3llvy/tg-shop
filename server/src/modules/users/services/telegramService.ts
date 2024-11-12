@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { LoggerService } from '../../core/services/loggerService'
+import { User } from '../../database/models'
 
 export class TelegramService {
   private readonly p_botToken: string
@@ -27,7 +28,7 @@ export class TelegramService {
         return null
       }
 
-      const fileId = photos[0][0].file_id
+      const fileId = photos[0][photos[0].length - 1].file_id
       const fileResponse = await axios.get(
         `https://api.telegram.org/bot${this.p_botToken}/getFile`,
         {
@@ -36,7 +37,18 @@ export class TelegramService {
       )
 
       const filePath = fileResponse.data.result.file_path
-      return `https://api.telegram.org/file/bot${this.p_botToken}/${filePath}`
+      const avatarUrl = `https://api.telegram.org/file/bot${this.p_botToken}/${filePath}`
+
+      await User.findOneAndUpdate(
+        { telegramId: _userId },
+        { 
+          'avatar.fileId': fileId,
+          'avatar.url': avatarUrl,
+          'avatar.lastUpdated': new Date()
+        }
+      )
+
+      return avatarUrl
     } catch (error) {
       this.p_logger.logError('Ошибка получения аватара:', error)
       return null

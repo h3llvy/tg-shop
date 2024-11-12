@@ -9,8 +9,14 @@ export interface IUser {
   lastActive: Date
 }
 
-export interface IUserProfile extends IUser {
+export interface IUserProfile {
+  id: number
   firstName: string
   lastName?: string
+  username?: string
+  isPremium?: boolean
+  giftsReceived: number
+  giftsSent: number
+  avatar?: string
   languageCode?: string
 }

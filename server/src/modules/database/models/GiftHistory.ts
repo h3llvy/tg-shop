@@ -2,15 +2,18 @@ import { Schema, model } from 'mongoose'
 
 export enum GiftHistoryAction {
   PURCHASE = 'purchase',
-  SEND = 'send'
+  SEND = 'send',
+  RECEIVE = 'receive'
 }
 
-export interface IGiftHistory {
+interface IGiftHistory {
   giftId: Schema.Types.ObjectId
   userId: number
   action: GiftHistoryAction
   recipientId?: number
   timestamp: Date
+  price?: number
+  asset?: string
 }
 
 const giftHistorySchema = new Schema<IGiftHistory>({
@@ -22,7 +25,9 @@ const giftHistorySchema = new Schema<IGiftHistory>({
     enum: Object.values(GiftHistoryAction)
   },
   recipientId: { type: Number },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  price: Number,
+  asset: String
 })
 
 giftHistorySchema.index({ giftId: 1 })
