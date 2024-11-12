@@ -96,7 +96,7 @@ export class UserService {
   }
 
   public async getUserProfileWithGiftsAsync(_userId: number): Promise<{
-    profile: IUser,
+    profile: IUserProfile,
     gifts: IUserGift[]
   }> {
     try {
@@ -108,16 +108,36 @@ export class UserService {
 
       // Получаем подарки пользователя с полной информацией
       const gifts = await UserGift.find({ userId: _userId })
-        .populate({
-          path: 'giftId',
-          model: 'Gift',
-          select: 'name description image prices isAvailable availableQuantity soldCount status rarity category bgColor'
-        })
+        .populate('giftId')
         .sort({ purchaseDate: -1 })
         .lean()
 
+      this.p_logger.logInfo('Получены данные профиля:', { 
+        userId: _userId, 
+        giftsCount: gifts.length 
+      })
+
       return {
-        profile: user,
+        profile: {
+          id: user.telegramId,
+          telegramId: user.telegramId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.username,
+          isPremium: user.isPremium,
+          giftsReceived: user.giftsReceived,
+          giftsSent: user.giftsSent,
+          avatar: user.avatar?.url,
+          languageCode: user.languageCode,
+          gifts: gifts.map(gift => ({
+            ...gift,
+            _id: gift._id.toString(),
+            gift: {
+              ...gift.giftId,
+              _id: gift.giftId._id.toString()
+            }
+          }))
+        },
         gifts: gifts.map(gift => ({
           ...gift,
           _id: gift._id.toString(),

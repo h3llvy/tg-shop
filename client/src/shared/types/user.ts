@@ -11,6 +11,7 @@ export interface IUser {
 
 export interface IUserProfile {
   id: number
+  telegramId: number
   firstName: string
   lastName?: string
   username?: string
@@ -19,4 +20,5 @@ export interface IUserProfile {
   giftsSent: number
   avatar?: string
   languageCode?: string
+  gifts?: IUserGift[]
 }

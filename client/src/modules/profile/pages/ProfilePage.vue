@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { telegramService } from '@/shared/services/telegram/telegramService'
 import { profileService } from '../services/profileService'
-import type { IUserProfile } from '@/shared/types/user'
+import type { IUserProfile, IUserGift } from '@/shared/types/user'
 import ProfileSkeleton from '../components/ProfileSkeleton.vue'
 import GiftsHistory from '../components/GiftsHistory.vue'
 import { useTheme } from '@/shared/composables/useTheme'
@@ -15,6 +15,9 @@ import PremIcon from '@/shared/assets/icons/Prem.svg'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import LangToggle from '@/shared/components/LangToggle.vue'
+import GiftDetailsModal from '../components/GiftDetailsModal.vue'
+import { getGiftIcon } from '@/shared/utils/giftIcons'
+import UserGiftCard from '../components/UserGiftCard.vue'
 
 const user = ref<IUserProfile | null>(null)
 const loading = ref(true)
@@ -33,6 +36,12 @@ const {
   getAvatarBackgroundColor 
 } = useUserAvatars()
 
+const selectedGift = ref<IUserGift | null>(null)
+
+const openGiftDetails = (gift: IUserGift) => {
+  selectedGift.value = gift
+}
+
 const initProfileAsync = async () => {
   try {
     const telegramUser = telegramService.user
@@ -42,8 +51,10 @@ const initProfileAsync = async () => {
     }
 
     // Получаем полный профиль с подарками
-    const { profile, gifts } = await profileService.getFullProfileAsync()
-    user.value = profile
+    const response = await profileService.getFullProfileAsync()
+    console.log('Получен ответ от сервера:', response)
+    
+    user.value = response.profile
     
     // Получаем аватар
     avatarUrl.value = await profileService.getUserAvatarAsync(telegramUser.id)
@@ -80,7 +91,7 @@ const handleRecentActionsClick = () => {
 }
 
 const sortedGifts = computed(() => {
-  if (!user.value?.gifts) return []
+  if (!user.value?.gifts?.length) return []
   
   return user.value.gifts
     .filter(gift => gift && gift.gift && gift._id)
@@ -164,50 +175,23 @@ const sortedGifts = computed(() => {
       </button>
 
       <!-- Сетка подарков -->
-      <div class="grid grid-cols-3 gap-4">
-        <div 
-          v-for="gift in sortedGifts"
-          :key="gift._id"
-          class="w-[115px] h-[160px] rounded-xl bg-[#EFEFF3] dark:bg-[#1C1C1E] relative p-2"
-        >
-          <!-- Аватар отправителя -->
-          <div class="absolute top-2 left-2 w-4 h-4 rounded-full overflow-hidden">
-            <img 
-              v-if="getUserAvatar(gift.userId)"
-              :src="getUserAvatar(gift.userId)"
-              :alt="gift.fromUserName"
-              class="w-full h-full object-cover"
-            />
-            <div 
-              v-else
-              class="w-full h-full flex items-center justify-center text-[8px] text-white"
-              :style="{ backgroundColor: getAvatarBackgroundColor(gift.userId) }"
-            >
-              {{ getUserInitials(gift.fromUserName || '') }}
-            </div>
-          </div>
-
-          <!-- Номер подарка -->
-          <div class="absolute top-2 right-2 text-[10px] text-[#8E8E93]">
-            {{ gift.serialNumber }} of {{ formatGiftsCount(gift.totalAvailable) }}
-          </div>
-
-          <!-- Иконка подарка -->
-          <div class="flex justify-center items-center h-20 mt-6">
-            <img 
-              :src="getGiftIcon(gift.gift.name)"
-              :alt="gift.gift.name"
-              class="w-20 h-20 object-contain"
-            />
-          </div>
-
-          <!-- Название подарка -->
-          <div class="text-center mt-5">
-            <h3 class="text-sm font-medium tracking-[-0.442px]">
-              {{ gift.gift.name }}
-            </h3>
-          </div>
+      <div class="px-4 mt-6">
+        <!-- Сетка подарков -->
+        <div class="grid grid-cols-3 gap-4">
+          <UserGiftCard
+            v-for="gift in sortedGifts"
+            :key="gift._id"
+            :gift="gift"
+            @click="openGiftDetails(gift)"
+          />
         </div>
+
+        <!-- Модальное окно с деталями подарка -->
+        <GiftDetailsModal
+          v-if="selectedGift"
+          :user-gift="selectedGift"
+          @close="selectedGift = null"
+        />
       </div>
     </div>
 
