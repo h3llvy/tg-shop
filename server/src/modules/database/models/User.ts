@@ -63,4 +63,10 @@ userSchema.virtual('isAvatarOutdated').get(function() {
 userSchema.set('toObject', { virtuals: true })
 userSchema.set('toJSON', { virtuals: true })
 
+// Добавляем индексы
+userSchema.index({ telegramId: 1 })
+userSchema.index({ giftsReceived: 1 })
+userSchema.index({ giftsSent: 1 })
+userSchema.index({ lastActive: -1 })
+
 export const User = model<IUser>('User', userSchema) 

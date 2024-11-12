@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import type { IUserGift } from '@/modules/gifts/types/userGift'
 import { profileService } from '../services/profileService'
 import UserGiftCard from './UserGiftCard.vue'
@@ -20,6 +20,14 @@ const loadGiftsHistoryAsync = async () => {
     loading.value = false
   }
 }
+
+const sortedGifts = computed(() => {
+  return gifts.value
+    .filter(gift => gift && gift.gift && gift._id)
+    .sort((a, b) => {
+      return new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime()
+    })
+})
 
 onMounted(loadGiftsHistoryAsync)
 </script>
@@ -47,7 +55,7 @@ onMounted(loadGiftsHistoryAsync)
       class="grid grid-cols-2 gap-4"
     >
       <UserGiftCard
-        v-for="gift in gifts"
+        v-for="gift in sortedGifts"
         :key="gift._id"
         :user-gift="gift"
       />

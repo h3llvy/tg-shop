@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose'
 import type { IGift } from './Gift'
+import type { CryptoAsset } from '../../payment/types/payment'
 
 export interface IUserGift {
   _id: Schema.Types.ObjectId
@@ -9,8 +10,8 @@ export interface IUserGift {
   purchaseDate: Date
   purchasePrice: number
   purchaseAsset: CryptoAsset
-  serialNumber: number // Порядковый номер из доступных
-  totalAvailable: number // Общее количество доступных на момент покупки
+  serialNumber: number
+  totalAvailable: number
   status: 'purchased' | 'sent' | 'received'
   recipientId?: number
   sentDate?: Date
@@ -68,8 +69,8 @@ const userGiftSchema = new Schema<IUserGift>({
     purchaseInvoiceId: { type: Number, required: true },
     transactionHash: { type: String },
     originalPrice: { type: Number, required: true },
-    discount: { type: Number },
-    giftMessage: { type: String }
+    discount: { type: Number, default: 0 },
+    giftMessage: { type: String, default: '' }
   }
 }, {
   timestamps: true

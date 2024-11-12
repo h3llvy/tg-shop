@@ -7,6 +7,8 @@ import type { IPaymentWebhook } from '../types/payment'
 import { TelegramService } from '../../telegram/services/telegramService'
 import { GiftService } from '../../gifts/services/giftService'
 import { WebSocketService } from '../../websocket/services/websocketService'
+// Импортируем модели из общего индексного файла
+import { User, UserGift } from '../../database/models'
 
 export class WebhookController {
   private readonly p_logger: LoggerService
@@ -84,8 +86,55 @@ export class WebhookController {
           // Получаем информацию о подарке
           const gift = await this.p_giftService.getByIdAsync(giftId)
           
-          // Отправляем уведомление через бот
-          if (userId && gift) {
+          if (gift && userId) {
+            // Создаём запись о покупке подарка
+            const userGift = await UserGift.create({
+              userId: userId,
+              giftId: giftId,
+              purchaseDate: new Date(),
+              purchasePrice: payload.paid_amount,
+              purchaseAsset: payload.asset,
+              serialNumber: gift.soldCount + 1,
+              totalAvailable: gift.availableQuantity + gift.soldCount,
+              status: 'purchased',
+              history: [{
+                action: 'purchase',
+                fromUserId: userId,
+                date: new Date(),
+                price: payload.paid_amount,
+                asset: payload.asset
+              }],
+              metadata: {
+                purchaseInvoiceId: payload.invoice_id,
+                originalPrice: payload.amount,
+                transactionHash: payload.hash,
+                giftMessage: '',
+                discount: 0
+              }
+            })
+
+            // Обновляем статистику пользователя
+            await User.findOneAndUpdate(
+              { telegramId: userId },
+              { 
+                $inc: { 
+                  giftsReceived: 1,
+                  giftsCount: 1
+                },
+                $set: {
+                  lastActive: new Date()
+                }
+              },
+              { new: true }
+            )
+
+            this.p_logger.logInfo('Создана запись о покупке подарка:', {
+              userId,
+              giftId,
+              userGiftId: userGift._id
+            })
+
+            // Отправляем уведомление через бот
             await this.p_telegramService.sendMessage(userId, {
               text: `✅ You have purchased the gift of ${gift.name}`,
               reply_markup: {
@@ -99,7 +148,6 @@ export class WebhookController {
                 ]]
               }
             })
-      
             
             // Отправляем уведомление через WebSocket
             this.p_webSocketService.sendPaymentSuccess(userId, {

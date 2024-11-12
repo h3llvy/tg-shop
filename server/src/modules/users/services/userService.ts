@@ -81,13 +81,24 @@ export class UserService {
 
       // Получаем подарки пользователя с полной информацией
       const gifts = await UserGift.find({ userId: _userId })
-        .populate('giftId')
+        .populate({
+          path: 'giftId',
+          model: 'Gift',
+          select: 'name description image prices isAvailable availableQuantity soldCount status rarity category bgColor'
+        })
         .sort({ purchaseDate: -1 })
         .lean()
 
       return {
         profile: user,
-        gifts: gifts
+        gifts: gifts.map(gift => ({
+          ...gift,
+          _id: gift._id.toString(),
+          gift: {
+            ...gift.giftId,
+            _id: gift.giftId._id.toString()
+          }
+        }))
       }
     } catch (error) {
       this.p_logger.logError('Ошибка получения профиля с подарками:', error)
@@ -103,15 +114,22 @@ export class UserService {
           { recipientId: _userId }
         ]
       })
-      .populate('giftId')
+      .populate({
+        path: 'giftId',
+        model: 'Gift',
+        select: 'name description image prices isAvailable availableQuantity soldCount status rarity category bgColor'
+      })
       .sort({ purchaseDate: -1 })
       .lean()
 
       // Преобразуем данные в нужный формат
       return gifts.map(gift => ({
         ...gift,
-        gift: gift.giftId, // Переименовываем giftId в gift для фронтенда
-        _id: gift._id.toString()
+        _id: gift._id.toString(),
+        gift: {
+          ...gift.giftId,
+          _id: gift.giftId._id.toString()
+        }
       }))
     } catch (error) {
       this.p_logger.logError('Ошибка получения истории подарков:', error)
