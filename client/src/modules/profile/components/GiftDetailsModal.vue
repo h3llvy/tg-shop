@@ -8,6 +8,7 @@ import { useRouter } from 'vue-router'
 import USDTIcon from '@/shared/assets/USDT.svg'
 import TONIcon from '@/shared/assets/TON.svg'
 import ETHIcon from '@/shared/assets/ETH.svg'
+import { useUserAvatars } from '@/shared/composables/useUserAvatars'
 
 const props = defineProps<{
   userGift: IUserGift
@@ -20,15 +21,23 @@ const emit = defineEmits<{
 const router = useRouter()
 const tg = window.Telegram?.WebApp
 
+const { 
+  loadUserAvatarAsync, 
+  getUserAvatar, 
+  getUserInitials 
+} = useUserAvatars()
+
 // Добавляем ref для аватарки отправителя
 const senderAvatarUrl = ref<string | null>(null)
 
 // Загружаем аватарку отправителя
 const loadSenderAvatarAsync = async () => {
   try {
-    senderAvatarUrl.value = await profileService.getUserAvatarAsync(props.userGift.userId)
+    console.log('Начало загрузки аватарки отправителя:', props.userGift.userId)
+    await loadUserAvatarAsync(props.userGift.userId)
+    console.log('Аватарка загружена:', getUserAvatar(props.userGift.userId))
   } catch (error) {
-    console.error('Ошибка загрузки аватара отправителя:', error)
+    console.error('Ошибка загрузки аватарок:', error)
   }
 }
 
@@ -47,19 +56,25 @@ const formattedDate = computed(() => {
 
 // Получаем данные отправителя
 const fromUser = computed(() => {
+  const userId = props.userGift.userId
+  const avatar = getUserAvatar(userId)
+  
   // Если это покупка самим пользователем
-  if (props.userGift.userId === telegramService.user?.id) {
+  if (userId === telegramService.user?.id) {
     return {
       id: telegramService.user.id,
       name: telegramService.user.first_name,
-      avatar: senderAvatarUrl.value
+      lastName: telegramService.user.last_name,
+      avatar
     }
   }
+  
   // Если это подарок от другого пользователя
   return {
-    id: props.userGift.userId,
+    id: userId,
     name: props.userGift.fromUserName || 'Unknown',
-    avatar: senderAvatarUrl.value
+    lastName: '',
+    avatar
   }
 })
 
@@ -124,14 +139,25 @@ onUnmounted(() => {
 
 // Функция закрытия модального окна
 const closeModal = () => {
-  // Показываем нижнюю навигацию
+  // Показываем нижнюю навигаци��
   emitBottomNavigationEvent(true)
   emit('close')
 }
 
-// Предотвращаем всплытие клика для контента модального окна
+// Предотвращаем всплыти клика для контента модального окна
 const preventPropagation = (e: Event) => {
   e.stopPropagation()
+}
+
+// Добавляем функцию для цвета фона
+const getAvatarBackgroundColor = (userId: number) => {
+  const colors = [
+    '#FF885E', '#FF516A', '#FF6B81', '#FE8D71',
+    '#77B8C4', '#4FB0C6', '#4C9EEB', '#7595FF',
+    '#8E85EE', '#AA75FF', '#E57AF0', '#F178B6',
+    '#7BC862', '#59B389', '#51B675', '#96B85B'
+  ]
+  return colors[userId % colors.length]
 }
 </script>
 
@@ -193,9 +219,10 @@ const preventPropagation = (e: Event) => {
             />
             <div 
               v-else
-              class="w-full h-full bg-gray-200 flex items-center justify-center text-xs"
+              class="w-full h-full flex items-center justify-center text-white text-xs font-medium"
+              :style="{ backgroundColor: getAvatarBackgroundColor(fromUser.id) }"
             >
-              {{ fromUser.name[0] }}
+              {{ getUserInitials(fromUser.name, fromUser.lastName) }}
             </div>
           </div>
           <span class="text-[#007AFF]">{{ fromUser.name }}</span>

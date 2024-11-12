@@ -43,15 +43,15 @@ export class UserController {
     try {
       const userId = parseInt(req.params.userId)
       if (isNaN(userId)) {
-        res.status(400).json({ error: 'Неверный ID пользователя' })
+        res.status(400).json({ error: 'Invalid user ID' })
         return
       }
 
-      const avatar = await this.p_userService.getUserAvatarAsync(userId)
-      res.json(avatar)
+      const avatarUrl = await this.p_userService.getUserAvatarAsync(userId)
+      res.json(avatarUrl)
     } catch (error) {
       this.p_logger.logError('Ошибка получения аватара:', error)
-      res.status(500).json({ error: 'Не удалось получить аватар' })
+      res.status(500).json({ error: 'Internal server error' })
     }
   }
 }

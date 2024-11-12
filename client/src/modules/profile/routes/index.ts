@@ -11,5 +11,15 @@ export const profileRoutes: RouteRecordRaw[] = [
       loadingComponent: ProfileSkeleton
     }),
     meta: { title: 'Профиль' }
+  },
+  {
+    path: '/profile/user/:id',
+    name: 'user-profile',
+    component: defineAsyncComponent({
+      loader: () => import('../pages/ProfilePage.vue'),
+      loadingComponent: ProfileSkeleton
+    }),
+    props: true,
+    meta: { title: 'Профиль пользователя' }
   }
 ]

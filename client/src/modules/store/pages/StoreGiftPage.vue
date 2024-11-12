@@ -14,14 +14,16 @@ import redStarAnimation from '@/shared/lottie-animations/gift-red-star.json'
 import greenStarAnimation from '@/shared/lottie-animations/gift-green-star.json'
 import blueStarAnimation from '@/shared/lottie-animations/gift-blue-star.json'
 import giftBgPattern from '@/shared/utils/giftbg.png'
+import { useUserAvatars } from '@/shared/composables/useUserAvatars'
+import { telegramService } from '@/shared/services/telegram/telegramService'
+import StoreGiftSkeleton from '../components/StoreGiftSkeleton.vue'
 
-// Добавляем импорты иконок
+// Импорты иконок
 import usdtIcon from '@/shared/assets/USDT.svg'
 import tonIcon from '@/shared/assets/TON.svg'
 import ethIcon from '@/shared/assets/ETH.svg'
 import storeIcon from '@/shared/assets/StoreIcon.svg'
 import storeIconSent from '@/shared/assets/StoreIconSent.svg'
-import StoreGiftSkeleton from '../components/StoreGiftSkeleton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,7 +119,7 @@ const handleBackClick = () => {
   router.back()
 }
 
-// Обработчик успешной оплаты через WebSocket
+// Обработ��ик успешной оплаты через WebSocket
 const handlePaymentSuccess = (data: PaymentSuccessData) => {
   console.log('Получено уведомление об успешной оплате через Socket.IO:', data)
   
@@ -258,6 +260,57 @@ const getBackgroundClass = (giftName: string) => {
   }
   return backgrounds[giftName as keyof typeof backgrounds] || ''
 }
+
+const { 
+  loadUserAvatarAsync, 
+  getUserAvatar, 
+  getUserInitials,
+  getAvatarBackgroundColor
+} = useUserAvatars()
+
+// Обновляем функцию загрузки истории
+const loadHistoryAsync = async () => {
+  try {
+    const giftId = route.params.id as string
+    history.value = await giftHistoryService.getGiftHistoryAsync(giftId)
+    
+    // Загружаем аватарки для всех пользователей
+    const userIds = new Set(history.value
+      .filter(item => item.user && item.user.id)
+      .map(item => item.user.id))
+    
+    const recipientIds = new Set(history.value
+      .filter(item => item.action === 'send' && item.recipient && item.recipient.id)
+      .map(item => item.recipient!.id))
+    
+    const allUserIds = [...userIds, ...recipientIds]
+    
+    // Загружаем аватарки и ждем завершения всех запросов
+    await Promise.all(allUserIds.map(userId => loadUserAvatarAsync(userId)))
+  } catch (error) {
+    console.error('Ошибка загрузки истории:', error)
+  }
+}
+
+// Функция для перехода в профиль пользователя
+const handleUserClick = (userId: number) => {
+  try {
+    if (userId === telegramService.user?.id) {
+      router.push({ name: 'profile' })
+    } else {
+      router.push({ 
+        name: 'user-profile',
+        params: { id: userId.toString() }
+      })
+    }
+  } catch (error) {
+    console.error('Ошибка перехода в профиль:', error)
+  }
+}
+
+onMounted(() => {
+  loadHistoryAsync()
+})
 </script>
 
 <template>
@@ -339,9 +392,25 @@ const getBackgroundClass = (giftName: string) => {
             :key="index"
             class="flex items-start gap-3"
           >
-            <div class="relative">
-              <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                {{ item.user.firstName[0] }}
+            <!-- Аватар пользователя -->
+            <div 
+              class="relative cursor-pointer"
+              @click="handleUserClick(item.user.id)"
+            >
+              <div class="w-10 h-10 rounded-full overflow-hidden">
+                <img 
+                  v-if="getUserAvatar(item.user.id)"
+                  :src="getUserAvatar(item.user.id)"
+                  :alt="item.user.firstName"
+                  class="w-full h-full object-cover"
+                />
+                <div 
+                  v-else
+                  class="w-full h-full flex items-center justify-center text-white text-sm font-medium"
+                  :style="{ backgroundColor: getAvatarBackgroundColor(item.user.id) }"
+                >
+                  {{ getUserInitials(item.user.firstName, item.user.lastName) }}
+                </div>
               </div>
               <img 
                 :src="getStatusIcon(item.action)"
@@ -355,11 +424,24 @@ const getBackgroundClass = (giftName: string) => {
                 {{ item.action === 'send' ? 'Send gift' : 'Buy gift' }}
               </span>
               <div class="text-[17px] leading-[22px] tracking-[-0.442px]">
-                <span class="text-blue-500 font-medium">{{ item.user.firstName }}</span>
+                <!-- Имя отправителя -->
+                <span 
+                  class="text-blue-500 font-medium cursor-pointer"
+                  @click="handleUserClick(item.user.id)"
+                >
+                  {{ item.user.firstName }}
+                </span>
+                
                 <span class="text-black font-medium">
                   {{ item.action === 'send' ? ' sent gift to ' : ' bought a gift' }}
                 </span>
-                <span v-if="item.action === 'send'" class="text-blue-500 font-medium">
+
+                <!-- Имя получателя -->
+                <span 
+                  v-if="item.action === 'send' && item.recipient"
+                  class="text-blue-500 font-medium cursor-pointer"
+                  @click="handleUserClick(item.recipient.id)"
+                >
                   {{ item.recipient.firstName }}
                 </span>
               </div>

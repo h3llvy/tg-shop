@@ -6,9 +6,8 @@ export interface IGiftHistoryUser {
 }
 
 export interface IGiftHistory {
-  action: 'purchase' | 'send' | 'receive'
-  timestamp: string
+  action: 'purchase' | 'send'
   user: IGiftHistoryUser
   recipient?: IGiftHistoryUser
-  message?: string
+  date: string
 } 

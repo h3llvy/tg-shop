@@ -66,6 +66,24 @@ router.get('/gifts/history', authMiddleware, async (req, res) => {
   }
 })
 
+// Добавляем маршрут для получения профиля по ID
+router.get('/profile/full/:userId', authMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId)
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Неверный ID пользователя' })
+    }
+
+    const userService = new UserService()
+    const profileData = await userService.getUserProfileWithGiftsAsync(userId)
+    
+    res.json(profileData)
+  } catch (error) {
+    console.error('Ошибка получения профиля пользователя:', error)
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+  }
+})
+
 // Остальные маршруты
 router.post('/', (req, res) => controller.createUserAsync(req, res))
 router.get('/avatar/:userId', (req, res) => controller.getUserAvatarAsync(req, res))

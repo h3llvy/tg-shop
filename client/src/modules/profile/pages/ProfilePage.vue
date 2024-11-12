@@ -5,30 +5,44 @@ import { profileService } from '../services/profileService'
 import type { IUserProfile } from '@/shared/types/user'
 import ProfileSkeleton from '../components/ProfileSkeleton.vue'
 import GiftsHistory from '../components/GiftsHistory.vue'
+import { useRoute } from 'vue-router'
+import { useUserAvatars } from '@/shared/composables/useUserAvatars'
 
 const user = ref<IUserProfile | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const avatarUrl = ref<string | null>(null)
 
+const route = useRoute()
+
 const isDarkTheme = computed(() => {
   return telegramService.webApp?.colorScheme === 'dark' || false
 })
 
+const props = defineProps<{
+  id?: string // ID пользователя из URL
+}>()
+
+const { loadUserAvatarAsync, getUserAvatar } = useUserAvatars()
+
 const initProfileAsync = async () => {
   try {
-    const telegramUser = telegramService.user
-    if (!telegramUser) {
+    const userId = props.id 
+      ? parseInt(props.id)
+      : telegramService.user?.id
+
+    if (!userId) {
       error.value = 'Не удалось получить данные пользователя'
       return
     }
 
     // Получаем полный профиль с подарками
-    const { profile, gifts } = await profileService.getFullProfileAsync()
+    const { profile, gifts } = await profileService.getFullProfileAsync(userId)
     user.value = profile
     
-    // Получаем аватар
-    avatarUrl.value = await profileService.getUserAvatarAsync(telegramUser.id)
+    // Загружаем аватар через useUserAvatars
+    await loadUserAvatarAsync(userId)
+    avatarUrl.value = getUserAvatar(userId)
   } catch (err) {
     console.error('Ошибка загрузки профиля:', err)
     error.value = 'Не удалось загрузить профиль'

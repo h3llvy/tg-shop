@@ -32,19 +32,30 @@ export class ProfileService {
   public async getUserAvatarAsync(userId: number): Promise<string | null> {
     try {
       const { data } = await this.p_axiosInstance.get(`/api/users/avatar/${userId}`)
-      return data.url || data.avatarUrl || null
+      // Если data - это строка, значит это прямой URL аватарки
+      if (typeof data === 'string') {
+        return data
+      }
+      // Иначе ищем URL в объекте data
+      const avatarUrl = data?.url || data?.avatarUrl || data?.avatar?.url || data
+      console.log('Получен ответ для аватарки:', { userId, data, avatarUrl })
+      return avatarUrl
     } catch (error) {
       console.error('Ошибка получения аватара:', error)
       return null
     }
   }
 
-  public async getFullProfileAsync(): Promise<{
+  public async getFullProfileAsync(userId?: number): Promise<{
     profile: IUserProfile,
     gifts: IUserGift[]
   }> {
     try {
-      const { data } = await this.p_axiosInstance.get('/api/users/profile/full')
+      const endpoint = userId 
+        ? `/api/users/profile/full/${userId}`
+        : '/api/users/profile/full'
+        
+      const { data } = await this.p_axiosInstance.get(endpoint)
       return data
     } catch (error) {
       console.error('Ошибка получения полного профиля:', error)
