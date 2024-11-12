@@ -194,7 +194,7 @@ const handleEnterFrame = (e: { currentTime: number }, itemName: string) => {
           @enter-frame="(e) => handleEnterFrame(e, item.name)"
         />
         <span 
-          class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px] mt-1"
+          class="text-[10px]  font-medium tracking-[0.1px] mt-1"
         >
           {{ item.label }}
         </span>
@@ -204,19 +204,12 @@ const handleEnterFrame = (e: { currentTime: number }, itemName: string) => {
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'SF Pro Text';
-  src: url('@/shared/assets/fonts/SF-Pro-Text-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-}
 
-/* Добавляем стили для активного состояния кнопки */
 button:active {
   transform: scale(0.95);
 }
 
-/* Добавляем плавность для всех трансформаций */
+
 button, span {
   transition: all 0.2s ease;
 }
