@@ -108,15 +108,15 @@ const sortedGifts = computed(() => {
     </div>
     
     <div v-else-if="user" class="flex flex-col items-center">
-      <!-- Верхняя панель -->
-      <div class="flex justify-between items-center px-4 pt-4">
-        <!-- Переключатель темы -->
-        <div class="absolute left-4 top-4">
+      <!-- Верхняя панель (теперь без absolute) -->
+      <div class="w-full flex justify-between items-center px-4 pt-4">
+        <!-- Переключатель темы (убираем absolute) -->
+        <div>
           <ThemeToggle />
         </div>
 
         <!-- Аватар с позицией -->
-        <div class="mx-auto relative pt-4">
+        <div class="relative pt-4">
           <div class="w-[100px] h-[100px] rounded-full overflow-hidden">
             <img 
               v-if="avatarUrl"
@@ -141,8 +141,8 @@ const sortedGifts = computed(() => {
           </div>
         </div>
 
-        <!-- Переключатель языка -->
-        <div class="absolute right-4 top-4">
+        <!-- Переключатель языка (убираем absolute) -->
+        <div>
           <LangToggle />
         </div>
       </div>

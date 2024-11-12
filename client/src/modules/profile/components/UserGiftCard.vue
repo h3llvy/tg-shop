@@ -76,7 +76,7 @@ onMounted(async () => {
     <!-- Назван��е подарка -->
     <div class="text-center mt-2">
       <h3 
-        class="text-[14px] font-medium leading-[18px] tracking-[-0.442px] font-['SF_Pro_Text'] text-label-primary-light dark:text-label-primary-dark"
+        class="text-[14px] font-medium leading-[18px] tracking-[-0.442px]  text-label-primary-light dark:text-label-primary-dark"
       >
         {{ gift.gift.name }}
       </h3>
