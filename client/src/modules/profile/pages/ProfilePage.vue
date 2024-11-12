@@ -202,10 +202,5 @@ const sortedGifts = computed(() => {
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'SF Pro Text';
-  src: url('@/shared/assets/fonts/SF-Pro-Text-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-}
+
 </style>
