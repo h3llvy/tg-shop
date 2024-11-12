@@ -88,4 +88,20 @@ router.get('/profile/full/:userId', authMiddleware, async (req, res) => {
 router.post('/', (req, res) => controller.createUserAsync(req, res))
 router.get('/avatar/:userId', (req, res) => controller.getUserAvatarAsync(req, res))
 
+router.get('/mypurchasedgifts', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Пользователь не авторизован' })
+    }
+
+    const userService = new UserService()
+    const gifts = await userService.getPurchasedGiftsAsync(req.user.id)
+    
+    res.json(gifts)
+  } catch (error) {
+    console.error('Ошибка получения купленных подарков:', error)
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' })
+  }
+})
+
 export { router as userRoutes }

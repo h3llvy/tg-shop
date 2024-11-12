@@ -45,6 +45,16 @@ class GiftService {
     }
   }
 
+  public async getPurchasedGiftsAsync(): Promise<IUserGift[]> {
+    try {
+      const { data } = await api.get('/api/users/mypurchasedgifts')
+      return data.map(this.mapUserGiftResponse)
+    } catch (error) {
+      console.error('Ошибка получения купленных подарков:', error)
+      throw error
+    }
+  }
+
   private mapGiftResponse(gift: any): IGift {
     return {
       _id: gift._id,
@@ -66,10 +76,14 @@ class GiftService {
       _id: userGift._id,
       userId: userGift.userId,
       gift: this.mapGiftResponse(userGift.gift),
-      purchaseDate: new Date(userGift.purchaseDate),
+      purchaseDate: userGift.purchaseDate,
       status: userGift.status,
       recipientId: userGift.recipientId,
-      sentDate: userGift.sentDate ? new Date(userGift.sentDate) : undefined
+      sentDate: userGift.sentDate,
+      serialNumber: userGift.serialNumber,
+      totalAvailable: userGift.totalAvailable,
+      purchasePrice: userGift.purchasePrice,
+      purchaseAsset: userGift.purchaseAsset
     }
   }
 }

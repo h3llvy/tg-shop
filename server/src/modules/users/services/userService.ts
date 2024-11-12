@@ -183,4 +183,32 @@ export class UserService {
       throw error
     }
   }
+
+  public async getPurchasedGiftsAsync(_userId: number): Promise<IUserGift[]> {
+    try {
+      const gifts = await UserGift.find({
+        userId: _userId,
+        status: 'purchased' // только купленные подарки
+      })
+      .populate({
+        path: 'giftId',
+        model: 'Gift',
+        select: 'name description image prices isAvailable availableQuantity soldCount status rarity category bgColor'
+      })
+      .sort({ purchaseDate: -1 })
+      .lean()
+
+      return gifts.map(gift => ({
+        ...gift,
+        _id: gift._id.toString(),
+        gift: {
+          ...gift.giftId,
+          _id: gift.giftId._id.toString()
+        }
+      }))
+    } catch (error) {
+      this.p_logger.logError('Ошибка получения купленных подарков:', error)
+      throw error
+    }
+  }
 }
