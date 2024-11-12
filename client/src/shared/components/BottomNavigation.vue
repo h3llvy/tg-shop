@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Vue3Lottie } from 'vue3-lottie'
 import type { Ref } from 'vue'
@@ -99,6 +99,17 @@ onMounted(() => {
     // Снимаем флаг первичной загрузки после инициализации
     isFirstLoad.value = false
   })
+
+  // Слушаем событие видимости
+  window.addEventListener('bottom-navigation-visibility', ((event: CustomEvent) => {
+    isVisible.value = event.detail.visible
+  }) as EventListener)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('bottom-navigation-visibility', ((event: CustomEvent) => {
+    isVisible.value = event.detail.visible
+  }) as EventListener)
 })
 
 const navigate = async (_routeName: string) => {
@@ -152,11 +163,15 @@ const handleEnterFrame = (e: { currentTime: number }, itemName: string) => {
     instance.goToAndStop(29, true) // Останавливаем на последнем кадре
   }
 }
+
+// Добавим computed для проверки видимости
+const isVisible = ref(true)
 </script>
 
 <template>
   <nav 
-    class="fixed bottom-0 left-0 right-0 z-50 flex justify-center items-start self-stretch bg-white dark:bg-black border-t border-[#3C3C4326] dark:border-[#545458A6]"
+    v-if="isVisible"
+    class="bottom-navigation fixed bottom-0 left-0 right-0 z-50 flex justify-center items-start self-stretch bg-white dark:bg-black border-t border-[#3C3C4326] dark:border-[#545458A6]"
   >
     <div class="flex justify-around w-full">
       <button

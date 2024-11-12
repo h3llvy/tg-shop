@@ -37,4 +37,6 @@ export interface IUserGift {
     price?: number
     asset?: CryptoAsset
   }>
+  fromUserName?: string
+  fromUserAvatar?: string
 } 
