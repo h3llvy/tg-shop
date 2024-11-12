@@ -76,27 +76,24 @@ services:
     restart: unless-stopped
 
   client:
-    build:
-      context: ./client
-      target: development
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    ports:
-      - "${VITE_PORT}:3000"
-    environment:
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
-      - VITE_TELEGRAM_BOT_USERNAME=${VITE_TELEGRAM_BOT_USERNAME}
-      - VITE_CRYPTO_PAY_API_URL=${VITE_CRYPTO_PAY_API_URL}
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+  build:
+    context: ./client
+    target: production
+  ports:
+    - "${VITE_PORT}:3000"
+  environment:
+    - VITE_API_URL=${VITE_API_URL}
+    - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
+    - VITE_TELEGRAM_BOT_USERNAME=${VITE_TELEGRAM_BOT_USERNAME}
+    - VITE_CRYPTO_PAY_API_URL=${VITE_CRYPTO_PAY_API_URL}
+  networks:
+    - app-network
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "http://localhost:3000"]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
 
   bot:
     build:
