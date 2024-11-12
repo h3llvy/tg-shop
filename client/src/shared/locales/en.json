@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "giftsReceived": "gifts received",
+    "recentActions": "Recent Actions",
+    "noGifts": "No gifts yet"
+  },
+  "gift": {
+    "availability": "Availability",
+    "price": "Price",
+    "from": "From",
+    "date": "Date",
+    "buyGift": "Buy Gift",
+    "sendGift": "Send Gift"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "close": "Close"
+  }
+} 

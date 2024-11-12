@@ -1,4 +1,3 @@
-
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
@@ -65,7 +64,7 @@ const config: Config = {
         },
         bg: {
           primary: {
-            light: '#F2F2F7',
+            light: '#EFEFF3',
             dark: '#1C1C1E'
           },
           secondary: {
@@ -73,8 +72,8 @@ const config: Config = {
             dark: '#2C2C2E'
           },
           notification: {
-            light: '#30B6F6',
-            dark: '#0A84FF'
+            light: '#EFEFF3',
+            dark: '#2D2D2DCC'
           },
           tabBar: {
             light: '#F2F2F7',

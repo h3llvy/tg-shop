@@ -11,14 +11,7 @@ export function useUserAvatars() {
     try {
       loadingAvatars.value[userId] = true
       const avatar = await profileService.getUserAvatarAsync(userId)
-      console.log('Загружена аватарка:', { userId, avatar })
-      
-      // Сохраняем URL аватарки
-      if (typeof avatar === 'string') {
-        userAvatars.value[userId] = avatar
-      } else {
-        userAvatars.value[userId] = null
-      }
+      userAvatars.value[userId] = avatar
     } catch (error) {
       console.error('Ошибка загрузки аватара:', error)
       userAvatars.value[userId] = null
@@ -28,16 +21,12 @@ export function useUserAvatars() {
   }
 
   const getUserAvatar = (userId: number) => {
-    const avatar = userAvatars.value[userId]
-    console.log('Получение аватарки из кэша:', { userId, avatar })
-    return avatar
+    return userAvatars.value[userId] || null
   }
 
-  const getUserInitials = (firstName: string, lastName?: string) => {
-    if (!firstName) return '?'
-    const firstInitial = firstName[0]
-    const lastInitial = lastName ? lastName[0] : ''
-    return (firstInitial + lastInitial).toUpperCase()
+  const getUserInitials = (name: string) => {
+    if (!name) return '?'
+    return name[0].toUpperCase()
   }
 
   const getAvatarBackgroundColor = (userId: number) => {
@@ -51,7 +40,6 @@ export function useUserAvatars() {
   }
 
   return {
-    userAvatars,
     loadUserAvatarAsync,
     getUserAvatar,
     getUserInitials,

@@ -15,11 +15,11 @@ declare namespace Telegram {
   }
 
   interface MainButtonParams {
-    text?: string
-    color?: string
-    text_color?: string
-    is_visible?: boolean
-    is_active?: boolean
+    text: string
+    color: string
+    text_color: string
+    is_visible: boolean
+    is_active: boolean
   }
 
   interface SecondaryButtonParams extends MainButtonParams {
@@ -36,10 +36,10 @@ declare namespace Telegram {
   interface MainButton {
     text: string
     color: string
-    textColor: string
-    isVisible: boolean
-    isActive: boolean
-    isProgressVisible: boolean
+    text_color: string
+    is_visible: boolean
+    is_active: boolean
+    is_progress_visible: boolean
     
     show(): void
     hide(): void

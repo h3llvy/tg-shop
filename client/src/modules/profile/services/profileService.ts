@@ -32,11 +32,9 @@ export class ProfileService {
   public async getUserAvatarAsync(userId: number): Promise<string | null> {
     try {
       const { data } = await this.p_axiosInstance.get(`/api/users/avatar/${userId}`)
-      // Если data - это строка, значит это прямой URL аватарки
       if (typeof data === 'string') {
         return data
       }
-      // Иначе ищем URL в объекте data
       const avatarUrl = data?.url || data?.avatarUrl || data?.avatar?.url || data
       console.log('Получен ответ для аватарки:', { userId, data, avatarUrl })
       return avatarUrl
@@ -46,16 +44,12 @@ export class ProfileService {
     }
   }
 
-  public async getFullProfileAsync(userId?: number): Promise<{
+  public async getFullProfileAsync(): Promise<{
     profile: IUserProfile,
     gifts: IUserGift[]
   }> {
     try {
-      const endpoint = userId 
-        ? `/api/users/profile/full/${userId}`
-        : '/api/users/profile/full'
-        
-      const { data } = await this.p_axiosInstance.get(endpoint)
+      const { data } = await this.p_axiosInstance.get('/api/users/profile/full')
       return data
     } catch (error) {
       console.error('Ошибка получения полного профиля:', error)

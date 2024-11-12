@@ -14,29 +14,30 @@ export class UserService {
     this.p_logger = new LoggerService()
   }
 
+  private isAvatarOutdated(lastUpdated?: Date): boolean {
+    if (!lastUpdated) return true
+    
+    const now = new Date().getTime()
+    const lastUpdate = new Date(lastUpdated).getTime()
+    const dayInMs = 24 * 60 * 60 * 1000
+    
+    return now - lastUpdate > dayInMs
+  }
+
   public async getUserAvatarAsync(_userId: number): Promise<string | null> {
     try {
-      // Проверяем существование пользователя
       const user = await User.findOne({ telegramId: _userId })
       if (!user) {
-        this.p_logger.logInfo('Пользователь не найден:', { userId: _userId })
         return null
       }
 
-      // Если у пользователя есть кэшированная аватарка и она не устарела
       if (user.avatar?.url && !this.isAvatarOutdated(user.avatar.lastUpdated)) {
-        this.p_logger.logInfo('Возвращаем кэшированную аватарку:', { 
-          userId: _userId,
-          url: user.avatar.url 
-        })
         return user.avatar.url
       }
 
-      // Пытаемся получить новую аватарку
       const avatarUrl = await this.p_telegramService.getUserAvatarUrlAsync(_userId)
       
       if (avatarUrl) {
-        // Обновляем аватарку в базе
         await User.updateOne(
           { telegramId: _userId },
           { 
@@ -46,10 +47,6 @@ export class UserService {
             }
           }
         )
-        this.p_logger.logInfo('Обновлена аватарка пользователя:', {
-          userId: _userId,
-          url: avatarUrl
-        })
         return avatarUrl
       }
 
@@ -58,16 +55,6 @@ export class UserService {
       this.p_logger.logError('Ошибка получения аватара:', error)
       return null
     }
-  }
-
-  private isAvatarOutdated(lastUpdated?: Date): boolean {
-    if (!lastUpdated) return true
-    
-    const now = new Date().getTime()
-    const lastUpdate = new Date(lastUpdated).getTime()
-    const dayInMs = 24 * 60 * 60 * 1000
-    
-    return now - lastUpdate > dayInMs
   }
 
   public async getUserProfileAsync(_userId: number): Promise<IUserResponse> {

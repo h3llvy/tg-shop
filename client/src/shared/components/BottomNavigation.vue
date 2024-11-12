@@ -73,43 +73,45 @@ const currentFrame = ref<Record<string, number>>({
   profile: 0
 })
 
-// Обработчик для ref анимации
-const handleAnimationRef = (el: any, itemName: string) => {
+// Добавляем функцию для обработки ref анимации
+const handleAnimationRef = (el: any, name: string) => {
   if (el) {
-    animationInstances[itemName].value = el as LottieRef
-    
-    // При первичной загрузке принудительно останавливаем все анимации
-    if (isFirstLoad.value) {
-      requestAnimationFrame(() => {
-        el.stop?.()
-        el.goToAndStop?.(0)
-      })
-    }
+    animationInstances[name].value = el
   }
 }
 
+// Управление видимостью через комбинацию метаданных маршрута и событий
+const isVisible = ref(true)
+
+// Проверяем видимость на основе метаданных маршрута и состояния
+const shouldShowNavigation = computed(() => {
+  // Если в маршруте указано явно скрыть навигацию
+  if (route.meta.hideNavigation) {
+    return false
+  }
+  // Иначе используем локальное состояние
+  return isVisible.value
+})
+
+// Обработчик события видимости
+const handleVisibilityChange = (event: CustomEvent) => {
+  isVisible.value = event.detail.visible
+}
+
 onMounted(() => {
+  window.addEventListener('bottom-navigation-visibility', handleVisibilityChange as EventListener)
+  
   // Принудительно останавливаем все анимации при монтировании
   requestAnimationFrame(() => {
     Object.values(animationInstances).forEach(instance => {
       instance.value?.stop()
       instance.value?.goToAndStop(0)
     })
-    
-    // Снимаем флаг первичной загрузки после инициализации
-    isFirstLoad.value = false
   })
-
-  // Слушаем событие видимости
-  window.addEventListener('bottom-navigation-visibility', ((event: CustomEvent) => {
-    isVisible.value = event.detail.visible
-  }) as EventListener)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('bottom-navigation-visibility', ((event: CustomEvent) => {
-    isVisible.value = event.detail.visible
-  }) as EventListener)
+  window.removeEventListener('bottom-navigation-visibility', handleVisibilityChange as EventListener)
 })
 
 const navigate = async (_routeName: string) => {
@@ -163,14 +165,11 @@ const handleEnterFrame = (e: { currentTime: number }, itemName: string) => {
     instance.goToAndStop(29, true) // Останавливаем на последнем кадре
   }
 }
-
-// Добавим computed для проверки видимости
-const isVisible = ref(true)
 </script>
 
 <template>
   <nav 
-    v-if="isVisible"
+    v-if="shouldShowNavigation"
     class="bottom-navigation fixed bottom-0 left-0 right-0 z-50 flex justify-center items-start self-stretch bg-white dark:bg-black border-t border-[#3C3C4326] dark:border-[#545458A6]"
   >
     <div class="flex justify-around w-full">
@@ -195,8 +194,7 @@ const isVisible = ref(true)
           @enter-frame="(e) => handleEnterFrame(e, item.name)"
         />
         <span 
-          class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px] mt-1 transition-transform duration-200"
-          :class="{ 'transform active:scale-95': true }"
+          class="text-[10px] font-['SF_Pro_Text'] font-medium tracking-[0.1px] mt-1"
         >
           {{ item.label }}
         </span>
