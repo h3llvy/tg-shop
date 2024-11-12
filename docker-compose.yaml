@@ -10,11 +10,8 @@ services:
       - MONGO_INITDB_DATABASE=giftshop
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    ports:
-      - "27017:27017"
     networks:
-      - coolify
+      - app-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -35,9 +32,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - coolify
-    expose:
-      - "6379"
+      - app-network
+    # Убираем expose, если не нужен
+    # expose:
+    #   - "6379"
     healthcheck:
       test: redis-cli -a ${REDIS_PASSWORD} ping | grep PONG
       interval: 10s
@@ -49,7 +47,6 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
       target: production
     ports:
       - "4000:4000"
@@ -63,10 +60,14 @@ services:
       - CORS_ORIGIN=${CORS_ORIGIN}
       - PUBLIC_URL=${PUBLIC_URL}
       - MONGODB_URI=${MONGODB_URI}
-      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
-      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - WEBAPP_URL=${WEBAPP_URL}
+      - WEBHOOK_DOMAIN=${WEBHOOK_DOMAIN}
+      - WEBHOOK_PATH=${WEBHOOK_PATH}
+      - SUPPORT_CHAT_ID=${SUPPORT_CHAT_ID}
+      - BOT_ASSETS_URL=${BOT_ASSETS_URL}
     labels:
       - coolify.managed=true
       - traefik.enable=true
@@ -75,22 +76,22 @@ services:
       - traefik.http.routers.server.tls=true
     restart: unless-stopped
     networks:
-      - coolify
+      - app-network
     depends_on:
       mongodb:
         condition: service_healthy
       redis:
-        condition: service_healthy
+        condition: service_started
 
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
-      target: production
       args:
         - VITE_API_URL=${VITE_API_URL}
         - VITE_TELEGRAM_BOT_USERNAME=${VITE_TELEGRAM_BOT_USERNAME}
         - VITE_PUBLIC_URL=${VITE_PUBLIC_URL}
+        - VITE_CRYPTO_PAY_API_URL=${VITE_CRYPTO_PAY_API_URL}
+      target: production
     ports:
       - "3000:3000"
     environment:
@@ -105,12 +106,11 @@ services:
       - server
     restart: unless-stopped
     networks:
-      - coolify
+      - app-network
 
   bot:
     build:
       context: ./bot
-      dockerfile: Dockerfile
       target: production
     environment:
       - NODE_ENV=production
@@ -120,17 +120,25 @@ services:
       - WEBAPP_URL=${WEBAPP_URL}
       - SERVER_URL=${SERVER_URL}
       - SUPPORT_CHAT_ID=${SUPPORT_CHAT_ID}
+      - BOT_ASSETS_URL=${BOT_ASSETS_URL}
+      - BOT_AVATAR_PATH=${BOT_AVATAR_PATH}
+      - BOT_START_IMAGE_PATH=${BOT_START_IMAGE_PATH}
     labels:
       - coolify.managed=true
     depends_on:
-      - server
+      server:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     networks:
-      - coolify
+      - app-network
 
 networks:
-  coolify:
-    external: true
+  app-network:
+    driver: bridge
 
 volumes:
   mongodb_data:
