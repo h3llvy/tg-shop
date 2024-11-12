@@ -11,7 +11,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "noEmitOnError": false,
     "skipLibCheck": true,
+    "isolatedModules": true,
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
