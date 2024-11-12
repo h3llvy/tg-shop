@@ -3,6 +3,7 @@ import { LoggerService } from '../../core/services/loggerService'
 import type { IUserAvatar, IUserResponse } from '../types/user'
 import { User } from '../../database/models'
 import { UserGift } from '../../database/models'
+import type { IUserGift } from '@/modules/gifts/types/userGift'
 
 export class UserService {
   private readonly p_telegramService: TelegramService
@@ -96,7 +97,7 @@ export class UserService {
 
   public async getUserGiftsHistoryAsync(_userId: number): Promise<IUserGift[]> {
     try {
-      return await UserGift.find({
+      const gifts = await UserGift.find({
         $or: [
           { userId: _userId },
           { recipientId: _userId }
@@ -105,6 +106,13 @@ export class UserService {
       .populate('giftId')
       .sort({ purchaseDate: -1 })
       .lean()
+
+      // Преобразуем данные в нужный формат
+      return gifts.map(gift => ({
+        ...gift,
+        gift: gift.giftId, // Переименовываем giftId в gift для фронтенда
+        _id: gift._id.toString()
+      }))
     } catch (error) {
       this.p_logger.logError('Ошибка получения истории подарков:', error)
       throw error

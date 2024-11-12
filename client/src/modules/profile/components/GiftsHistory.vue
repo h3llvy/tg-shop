@@ -10,7 +10,9 @@ const error = ref<string | null>(null)
 
 const loadGiftsHistoryAsync = async () => {
   try {
-    gifts.value = await profileService.getGiftsHistoryAsync()
+    const response = await profileService.getGiftsHistoryAsync()
+    // Проверяем что каждый подарок имеет необходимые поля
+    gifts.value = response.filter(gift => gift && gift.gift && gift._id)
   } catch (err) {
     error.value = 'Не удалось загрузить историю подарков'
     console.error(err)
