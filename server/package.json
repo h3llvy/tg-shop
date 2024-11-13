@@ -3,14 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --no-notify src/index.ts",
-    "build": "tsc --noEmitOnError false || true",
+    "dev": "ts-node-dev --transpile-only --ignore-watch node_modules --no-notify src/index.ts",
+    "build": "tsc --noEmit false",
     "start": "ts-node --transpile-only src/index.ts",
-    "seed:gifts": "ts-node src/scripts/seedGifts.ts",
-    "seed:leaderboard": "ts-node src/scripts/seedLeaderboard.ts",
-    "seed:orders": "ts-node src/scripts/seedOrders.ts",
-    "seed:all": "ts-node src/scripts/seedAll.ts",
-    "ts-node": "ts-node"
+    "seed:gifts": "ts-node --transpile-only src/scripts/seedGifts.ts",
+    "seed:leaderboard": "ts-node --transpile-only src/scripts/seedLeaderboard.ts",
+    "seed:orders": "ts-node --transpile-only src/scripts/seedOrders.ts",
+    "seed:all": "ts-node --transpile-only src/scripts/seedAll.ts"
   },
   "dependencies": {
     "@telegram-apps/init-data-node": "^1.1.1",

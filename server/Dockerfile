@@ -1,25 +1,9 @@
 # Stage 0: Base stage
-FROM node:20-alpine AS base
+FROM node:20-alpine 
 WORKDIR /app
-COPY package*.json ./
 
-# Stage 1: Development stage
-FROM base AS development
+COPY package*.json ./
 RUN npm install
+
 COPY . .
 CMD ["npm", "run", "dev"]
-
-# Stage 2: Build stage
-FROM base AS build
-RUN npm install
-COPY . .
-RUN npm run build
-
-# Stage 3: Production stage
-FROM node:20-alpine AS production
-WORKDIR /app
-COPY --from=build /app/dist ./dist
-COPY package*.json ./
-COPY static ./static
-RUN npm install --production
-CMD ["node", "dist/index.js"]
