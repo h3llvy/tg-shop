@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { asyncHandler } from '../../core/types/express'
 import { Gift } from '../../database/models'
+import { asyncHandler } from '../../core/middleware/asyncHandler'
 
 const router = Router()
 
@@ -24,4 +24,4 @@ router.get('/:id/inline', asyncHandler(async (req, res) => {
   })
 }))
 
-export { router as inlineRoutes } 
+export const inlineRoutes = router 

@@ -26,7 +26,14 @@ export const setupInlineGiftHandlers = (bot: HandlerBot): void => {
       })
 
       // Получаем информацию о подарке
-      const response = await axios.get(`${API_URL}/api/gifts/inline/${giftId}`)
+      const response = await axios.get(
+        `${API_URL}/api/gifts/${giftId}/inline`,
+        {
+          headers: {
+            'X-Telegram-Bot-Api-Secret-Token': process.env.BOT_TOKEN
+          }
+        }
+      )
       const gift = response.data
 
       if (!gift) {
