@@ -20,5 +20,6 @@ FROM node:20-alpine AS production
 WORKDIR /app
 COPY --from=build /app/dist ./dist
 COPY package*.json ./
+COPY static ./static
 RUN npm install --production
 CMD ["node", "dist/index.js"]
