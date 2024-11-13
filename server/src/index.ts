@@ -55,14 +55,14 @@ async function startServerAsync() {
     }
 
     if (!fs.existsSync(avatarPath)) {
-      logger.logError('Файл аватара не найден:', { path: avatarPath })
-      process.exit(1)
+      logger.logWarning('Файл аватара не найден:', { path: avatarPath })
+      // Продолжаем работу без аватара
+    } else {
+      logger.logInfo('Статические файлы проверены:', { 
+        staticPath,
+        files: fs.readdirSync(staticPath)
+      })
     }
-
-    logger.logInfo('Статические файлы проверены:', { 
-      staticPath,
-      files: fs.readdirSync(staticPath)
-    })
 
     await DatabaseService.getInstance().connectAsync()
 
