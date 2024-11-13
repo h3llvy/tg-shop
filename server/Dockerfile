@@ -8,7 +8,6 @@ RUN npm install
 # Копируем исходные файлы
 COPY src/ ./src/
 COPY tsconfig.json ./
-COPY .env ./
 
 
 # Устанавливаем права на директории
