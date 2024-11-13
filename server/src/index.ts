@@ -14,7 +14,6 @@ const logger = new LoggerService()
 
 function validateEnvVariables() {
   const requiredVars = [
-    'NODE_ENV',
     'PORT',
     'HOST',
     'BOT_TOKEN',
