@@ -6,9 +6,7 @@ COPY package*.json ./
 RUN npm install
 
 # Копируем исходные файлы
-COPY src/ ./src/
-COPY tsconfig.json ./
-
+COPY . .
 
 # Устанавливаем права на директории
 RUN chown -R node:node /app
