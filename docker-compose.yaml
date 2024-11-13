@@ -60,7 +60,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - CORS_ORIGIN=${CORS_ORIGIN}
     volumes:
-      - ./server/static:/app/static
+      - ./server/static:/app/static:ro
     depends_on:
       mongodb:
         condition: service_healthy
