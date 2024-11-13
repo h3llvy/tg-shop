@@ -40,9 +40,8 @@ services:
     build: 
       context: ./server
     volumes:
-      - ./server:/app
       - ./server/static:/app/static
-      - /app/node_modules
+      - ./server/src:/app/src:ro
     ports:
       - "4000:4000"
     environment:

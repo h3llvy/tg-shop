@@ -5,5 +5,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY . .
+COPY src/ ./src/
+COPY tsconfig.json ./
+COPY .env ./
+
+RUN mkdir -p static/gifts
+
 CMD ["npm", "run", "dev"]
