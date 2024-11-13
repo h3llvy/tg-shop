@@ -2,8 +2,8 @@
 FROM node:20-alpine 
 WORKDIR /app
 
-COPY server/package*.json ./
+COPY package*.json ./
 RUN npm install
 
-COPY server/ .
+COPY . .
 CMD ["npm", "run", "dev"]
