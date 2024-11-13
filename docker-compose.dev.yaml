@@ -41,7 +41,6 @@ services:
   server:
     build: 
       context: ./server
-      target: development
     volumes:
       - ./server:/app
       - ./server/static:/app/static
@@ -80,7 +79,6 @@ services:
   client:
     build:
       context: ./client
-      target: development
     volumes:
       - ./client:/app
       - /app/node_modules
@@ -103,7 +101,6 @@ services:
   bot:
     build:
       context: ./bot
-      target: development
     volumes:
       - ./bot:/app
       - /app/node_modules
@@ -151,7 +148,6 @@ services:
   seed:
     build: 
       context: ./server
-      target: development
     volumes:
       - ./server:/app
       - /app/node_modules

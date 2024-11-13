@@ -127,6 +127,8 @@ services:
       - WEBHOOK_PATH=${WEBHOOK_PATH}
       - SUPPORT_CHAT_ID=${SUPPORT_CHAT_ID}
       - CORS_ORIGIN=${CORS_ORIGIN}
+    volumes:
+      - ./server/static:/app/static
     command: >
       sh -c "
         echo 'Ожидаем запуск MongoDB...' &&
