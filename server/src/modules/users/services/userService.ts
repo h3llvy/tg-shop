@@ -184,29 +184,29 @@ export class UserService {
     }
   }
 
-  public async getPurchasedGiftsAsync(_userId: number): Promise<IUserGift[]> {
+  public async getPurchasedGiftsAsync(userId: number): Promise<any[]> {
     try {
-      const gifts = await UserGift.find({
-        userId: _userId,
-        status: 'purchased' // только купленные подарки
-      })
-      .populate('giftId')
-      .sort({ purchaseDate: -1 })
-      .lean()
-
+      const userGifts = await UserGift.find({
+        userId,
+        status: 'purchased'
+      }).populate('giftId')
+      
       this.p_logger.logInfo('Получены купленные подарки:', { 
-        userId: _userId, 
-        count: gifts.length 
+        userId, 
+        count: userGifts.length 
       })
 
-      return gifts.map(gift => ({
-        ...gift,
-        _id: gift._id.toString(),
-        giftId: {
-          ...gift.giftId,
-          _id: gift.giftId._id.toString()
-        }
-      }))
+      // Добавляем проверку на null/undefined
+      return userGifts
+        .filter(ug => ug.giftId) // Фильтруем записи с отсутствующими подарками
+        .map(userGift => ({
+          _id: userGift.giftId._id,
+          name: userGift.giftId.name,
+          description: userGift.giftId.description,
+          image: userGift.giftId.image,
+          purchaseDate: userGift.purchaseDate,
+          status: userGift.status
+        }))
     } catch (error) {
       this.p_logger.logError('Ошибка получения купленных подарков:', error)
       throw error
