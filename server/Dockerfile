@@ -4,12 +4,17 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
+# Устанавливаем typescript и ts-node глобально
+RUN npm install -g typescript ts-node
+
 # Устанавливаем зависимости
 RUN npm install
 
-# Копируем исходные файлы
+# Копируем исходные файлы и конфигурацию
 COPY . .
 
+# Создаем необходимые директории
+RUN mkdir -p static/gifts
 
 # Устанавливаем права на директории
 RUN chown -R node:node /app
@@ -17,5 +22,8 @@ RUN chown -R node:node /app
 # Переключаемся на пользователя node
 USER node
 
-# Запускаем ts-node с флагом --transpile-only
-CMD ["npx", "ts-node-dev", "--transpile-only", "--ignore-watch", "node_modules", "src/index.ts"]
+# Компилируем TypeScript
+RUN npm run build
+
+# Запускаем скомпилированное приложение
+CMD ["node", "dist/index.js"]
