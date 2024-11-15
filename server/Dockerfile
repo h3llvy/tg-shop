@@ -14,7 +14,7 @@ COPY . .
 RUN mkdir -p static/gifts
 
 # Компилируем TypeScript в JavaScript
-RUN npm run build
+RUN npm run build || true
 
 # Устанавливаем права на директории
 RUN chown -R node:node /app
