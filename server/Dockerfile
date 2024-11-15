@@ -4,8 +4,8 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm install
+# Устанавливаем зависимости без запуска postinstall скрипта
+RUN npm install --ignore-scripts
 
 # Копируем исходные файлы
 COPY . .
