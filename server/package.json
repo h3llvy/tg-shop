@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "ts-node-dev --transpile-only --ignore-watch node_modules --no-notify src/index.ts",
-    "build": "tsc --noEmit false",
-    "start": "ts-node --transpile-only --skip-project src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "postinstall": "tsc",
     "seed:gifts": "ts-node --transpile-only src/scripts/seedGifts.ts",
     "seed:leaderboard": "ts-node --transpile-only src/scripts/seedLeaderboard.ts",
     "seed:orders": "ts-node --transpile-only src/scripts/seedOrders.ts",

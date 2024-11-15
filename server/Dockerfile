@@ -13,11 +13,14 @@ COPY . .
 # Создаем директорию для статических файлов
 RUN mkdir -p static/gifts
 
+# Компилируем TypeScript в JavaScript
+RUN npm run build
+
 # Устанавливаем права на директории
 RUN chown -R node:node /app
 
 # Переключаемся на пользователя node
 USER node
 
-# Запускаем приложение без проверки типов
+# Запускаем скомпилированное приложение
 CMD ["npm", "run", "start"]
