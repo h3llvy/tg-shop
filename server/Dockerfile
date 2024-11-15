@@ -4,16 +4,13 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем typescript и ts-node глобально
-RUN npm install -g typescript ts-node
-
 # Устанавливаем зависимости
 RUN npm install
 
-# Копируем исходные файлы и конфигурацию
+# Копируем исходные файлы
 COPY . .
 
-# Создаем необходимые директории
+# Создаем директорию для статических файлов
 RUN mkdir -p static/gifts
 
 # Устанавливаем права на директории
@@ -22,8 +19,5 @@ RUN chown -R node:node /app
 # Переключаемся на пользователя node
 USER node
 
-# Компилируем TypeScript
-RUN npm run build
-
-# Запускаем скомпилированное приложение
-CMD ["node", "dist/index.js"]
+# Запускаем приложение без проверки типов
+CMD ["npm", "run", "start"]
