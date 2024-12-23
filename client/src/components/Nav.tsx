@@ -6,6 +6,7 @@ import {
 import React, {useState} from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {useCartStore, useTotalSumCart} from "@/state/cart_store";
+import {useLaunchParams} from "@telegram-apps/sdk-react";
 
 
 export function Nav() {
@@ -25,6 +26,7 @@ export function Nav() {
     )
     const totalSum = useTotalSumCart();
 
+    const lp = useLaunchParams();
 
     return (
         <>
@@ -91,6 +93,7 @@ export function Nav() {
                             fontSize: "1rem",
                             borderRadius: "8px",
                             marginTop: "16px",
+                            marginBottom: lp.platform === "ios" ? "20px" : "0",
                         }}
                         onClick={() => alert("Order placed!")}
                     >
@@ -100,6 +103,9 @@ export function Nav() {
             </Modal>
             <Tabbar>
                 <Tabbar.Item
+                    style={{
+                        marginBottom: lp.platform === "ios" ? "20px" : "0",
+                    }}
                     selected={true}
                     text={`Корзина (${totalSum})`}
                     onClick={() => setOpenModal(true)}

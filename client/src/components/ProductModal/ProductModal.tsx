@@ -6,9 +6,12 @@ import {
     ModalHeader
 } from "@telegram-apps/telegram-ui/dist/components/Overlays/Modal/components/ModalHeader/ModalHeader";
 import {useCartStore} from "@/state/cart_store";
+import {useLaunchParams} from "@telegram-apps/sdk-react";
 
 export default function ProductModal({setSelectedProduct, selectedProduct}) {
     const cart = useCartStore(state => state.cart);
+
+    const lp = useLaunchParams();
 
     return <Modal
         header={<ModalHeader>Описание товара</ModalHeader>}
@@ -62,7 +65,7 @@ export default function ProductModal({setSelectedProduct, selectedProduct}) {
                     <Button
                         mode="filled"
                         size="s"
-                        style={{width: 140}}
+                        style={{width: 140, marginBottom: lp.platform === "ios" ? "20px" : "0",}}
                         onClick={(e) => {
                             e.stopPropagation();
                             useCartStore.getState().addItem(selectedProduct.id)
