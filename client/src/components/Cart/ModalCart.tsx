@@ -63,7 +63,7 @@ export default function ModalCart({openModal, setOpenModal}) {
                     <div
                         style={{
                             display: "flex",
-                            justifyContent: "space-between",
+                            justifyContent:  "space-between",
                             padding: "16px 0",
                             fontWeight: "bold",
                             fontSize: "1.2rem",
