@@ -80,11 +80,8 @@ export const useTotalSumCart = () => {
     const products = useCartStore(state => state.originalProducts)
     let totalSum = 0;
     Object.keys(cart).forEach(id => {
-        const product = products[id];
+        const product = products.find(e => e.id == id);
         const quantity = cart[id];
-        console.log(product)
-        console.log(cart)
-        console.log(quantity)
         totalSum += parseInt(product.price.replace(/\D/g, '')) * quantity;
     })
 

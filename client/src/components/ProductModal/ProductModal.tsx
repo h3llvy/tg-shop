@@ -52,7 +52,6 @@ export default function ProductModal({setSelectedProduct, selectedProduct}) {
                         className="mb-4"
                         onClick={(e) => {
                             e.stopPropagation();
-                            console.log(`Added to cart: ${selectedProduct.price}`);
                             useCartStore.getState().deleteCompletelyItem(selectedProduct.id)
                         }}
                     >
@@ -66,7 +65,6 @@ export default function ProductModal({setSelectedProduct, selectedProduct}) {
                         style={{width: 140}}
                         onClick={(e) => {
                             e.stopPropagation();
-                            console.log(`Added to cart: ${selectedProduct.price}`);
                             useCartStore.getState().addItem(selectedProduct.id)
                         }}
                     >

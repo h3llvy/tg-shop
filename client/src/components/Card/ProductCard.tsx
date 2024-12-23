@@ -37,7 +37,6 @@ export default function ProductCard({product, setSelectedProduct})
                     className="mb-2"
                     onClick={(e) => {
                         e.stopPropagation();
-                        console.log(`Added to cart: ${product.price}`);
                         useCartStore.getState().deleteCompletelyItem(product.id)
                     }}
                 >
@@ -51,7 +50,6 @@ export default function ProductCard({product, setSelectedProduct})
                     style={{width: 140}}
                     onClick={(e) => {
                         e.stopPropagation();
-                        console.log(`Added to cart: ${product.price}`);
                         useCartStore.getState().addItem(product.id)
                     }}
                 >

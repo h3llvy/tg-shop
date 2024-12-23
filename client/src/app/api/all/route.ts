@@ -4,7 +4,6 @@ import db from "@/services/db";
 
 export async function GET(req) {
     const searchQuery  = req.nextUrl.searchParams.get('searchQuery');
-    console.log(searchQuery)
     try {
         if (mongoose.connection.readyState !== 1) {
             await db.connect()
@@ -14,7 +13,6 @@ export async function GET(req) {
             ? { subtitle: { $regex: searchQuery, $options: "i" } }
             : {};
 
-        console.log(filter)
         const products = await Product.find(filter, { id: 1, image: 1, subtitle: 1, price: 1, _id: 0 }).lean();
 
         return new Response(JSON.stringify(products), {

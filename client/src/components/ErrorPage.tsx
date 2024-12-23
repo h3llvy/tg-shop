@@ -18,6 +18,7 @@ export function ErrorPage({
       <blockquote>
         <code>
           {error.message}
+        {JSON.stringify(error)}
         </code>
       </blockquote>
       {reset && <button onClick={() => reset()}>Try again</button>}

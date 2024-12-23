@@ -10,7 +10,7 @@ export default function CatalogPage() {
     const [selectedProduct, setSelectedProduct] = useState(null)
 
     const products = useCartStore(state => state.products)
-    console.log(products)
+
     return (
         <Page back={false}>
             <div className="mx-1 mb-16 overflo">

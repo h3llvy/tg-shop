@@ -22,9 +22,7 @@ import {useCartStore} from "@/state/cart_store";
 function RootInner({ children }: PropsWithChildren) {
   const isDev = process.env.NODE_ENV === "development";
 
-  if (isDev) {
-    useTelegramMock();
-  }
+  useTelegramMock();
 
   const lp = useLaunchParams();
   const debug = isDev || lp.startParam === "debug";

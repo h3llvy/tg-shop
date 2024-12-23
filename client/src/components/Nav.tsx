@@ -12,15 +12,11 @@ export function Nav() {
     const [openModal, setOpenModal] = useState(false)
     const cart = useCartStore(state => state.cart)
     const products = useCartStore(state => state.originalProducts)
-
     const cartItems = Object.entries(cart).map(e => {
             const id = e[0];
             const count = e[1];
             const product = products.find(p => p.id == id)
-        console.log({
-            product: product,
-            count: count
-        })
+
             return {
                 product: product,
                 count: count
