@@ -5,11 +5,12 @@ import CatalogPage from "@/app/catalog/page";
 import {Input, Tappable} from "@telegram-apps/telegram-ui";
 import {Icon24Close} from "@telegram-apps/telegram-ui/dist/icons/24/close";
 import axios from "axios";
-import {useCartStore} from "@/state/cart_store";
+import {useCartItems, useCartStore, useTotalSumCart} from "@/state/cart_store";
 import IconMicrophone from "@/icons/IconMicrophone";
 import IconClose from "@/icons/IconClose";
 import {debounce} from "next/dist/server/utils";
 import {useDebouncedCallback} from "use-debounce";
+import {initData, useSignal} from "@telegram-apps/sdk-react";
 
 export default function Home() {
     const [value, setValue] = useState("");
@@ -59,6 +60,17 @@ export default function Home() {
             startRecording();
         }
     };
+
+    const initDataRaw = useSignal(initData.raw);
+
+    const orderDetails = {total: useTotalSumCart(), items: useCartItems()};
+    useEffect(() => {
+        console.log(initData)
+        console.log('asdasd')
+        axios.post('api/order', {
+            initDataRaw, phone: '123123', orderDetails: orderDetails
+        }).then(res => console.log(res))
+    }, []);
 
     const handleSearch = useDebouncedCallback(async (searchQuery) => {
         const response = await axios.get(`/api/all?searchQuery=${searchQuery}`);

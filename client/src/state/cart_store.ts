@@ -87,3 +87,20 @@ export const useTotalSumCart = () => {
 
     return totalSum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
 }
+
+export const useCartItems = () => {
+    const cart = useCartStore(state => state.cart)
+    const products = useCartStore(state => state.originalProducts)
+
+    return Object.entries(cart).map(e => {
+            const id = e[0];
+            const count = e[1];
+            const product = products.find(p => p.id == id)
+
+            return {
+                product: product,
+                count: count
+            }
+        }
+    )
+}

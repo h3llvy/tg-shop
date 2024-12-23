@@ -2,7 +2,7 @@ import {
     ModalHeader
 } from "@telegram-apps/telegram-ui/dist/components/Overlays/Modal/components/ModalHeader/ModalHeader";
 import {Button, Input, Modal, Tappable, VisuallyHidden} from "@telegram-apps/telegram-ui";
-import {useCartStore, useTotalSumCart} from "@/state/cart_store";
+import {useCartItems, useCartStore, useTotalSumCart} from "@/state/cart_store";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import React, {useState} from "react";
@@ -11,20 +11,7 @@ import IconClose from "@/icons/IconClose";
 import IconMicrophone from "@/icons/IconMicrophone";
 
 export default function ModalCart({openModal, setOpenModal}) {
-    const cart = useCartStore(state => state.cart)
-    const products = useCartStore(state => state.originalProducts)
-    const cartItems = Object.entries(cart).map(e => {
-            const id = e[0];
-            const count = e[1];
-            const product = products.find(p => p.id == id)
-
-            return {
-                product: product,
-                count: count
-            }
-        }
-    )
-
+    const cartItems = useCartItems()
     const totalSum = useTotalSumCart();
 
     const lp = useLaunchParams();
