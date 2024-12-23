@@ -1,0 +1,6 @@
+.product__card-cell span{
+    -webkit-line-clamp:4 !important;
+}
+.product__card-cell {
+    min-height: 146px;
+}

@@ -28,6 +28,8 @@ export class AuthController {
         return
       }
 
+      await this.p_authService.authenticateUserAsync(initData)
+
       const userData = this.p_authService.parseUserData(initData)
       if (!userData) {
         res.status(400).json({ error: 'Не удалось получить данные пользователя' })

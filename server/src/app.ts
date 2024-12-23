@@ -29,7 +29,9 @@ app.use((req, res, next) => {
 const ALLOWED_ORIGINS = [
   'https://local-tuna-client.ru.tuna.am',
   'http://localhost:3000',
-  'http://localhost:5173',
+  'https://localhost:4000',
+  'https://127.0.0.1:4000',
+  'http://localhost:55123',
   'https://local-tuna-server.ru.tuna.am',
   'https://app.giftcrybot.ru',
   'https://api.giftcrybot.ru'

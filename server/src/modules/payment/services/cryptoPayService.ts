@@ -98,4 +98,4 @@ class CryptoPayService {
   }
 }
 
-export const cryptoPayService = new CryptoPayService()
+// export const cryptoPayService = new CryptoPayService()

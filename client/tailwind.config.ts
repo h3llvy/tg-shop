@@ -1,92 +1,18 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss";
 
-const config: Config = {
-  content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: 'class',
+export default {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
       colors: {
-        // Основные цвета
-        white: '#FFFFFF',
-        black: '#000000',
-        primary: {
-          light: '#007AFF',
-          dark: '#0A84FF'
-        },
-        accent: {
-          blue: {
-            light: '#007AFF',
-            dark: '#0A84FF'
-          },
-          cyan: {
-            light: '#32ADE6',
-            dark: '#64D2FF'
-          },
-          gold: {
-            light: '#FF9500',
-            dark: '#FFD60A'
-          },
-          purple: {
-            light: '#AF52DE',
-            dark: '#BF5AF2'
-          },
-          green: {
-            light: '#34C759',
-            dark: '#30D158'
-          }
-        },
-        // Системные цвета
-        separator: {
-          light: '#3C3C4333',
-          dark: '#545458FF'
-        },
-        icons: {
-          light: '#3C3C43',
-          dark: '#EBEBF5'
-        },
-        label: {
-          primary: {
-            light: '#000000',
-            dark: '#FFFFFF'
-          },
-          secondary: {
-            light: '#3C3C43',
-            dark: '#EBEBF5'
-          },
-          tabBar: {
-            light: '#3C3C43',
-            dark: '#EBEBF5'
-          },
-          date: {
-            light: '#8E8E93',
-            dark: '#98989D'
-          }
-        },
-        bg: {
-          primary: {
-            light: '#EFEFF3',
-            dark: '#1C1C1E'
-          },
-          secondary: {
-            light: '#FFFFFF',
-            dark: '#2C2C2E'
-          },
-          notification: {
-            light: '#EFEFF3',
-            dark: '#2D2D2DCC'
-          },
-          tabBar: {
-            light: '#F2F2F7',
-            dark: '#1C1C1E'
-          }
-        }
-      }
-    }
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+      },
+    },
   },
-  plugins: [
-    require("@tailwindcss/forms"),
-    require("@tailwindcss/typography")
-  ]
-}
-
-export default config
+  plugins: [],
+} satisfies Config;

@@ -20,7 +20,9 @@ interface IConfig {
   BOT_NAME: string
   SERVER_URL: string
 }
+import 'dotenv/config'
 
+console.log(process.env.CORS_ORIGIN)
 const config: IConfig = {
   PORT: Number(process.env.PORT) || 4000,
   HOST: process.env.HOST || '0.0.0.0',

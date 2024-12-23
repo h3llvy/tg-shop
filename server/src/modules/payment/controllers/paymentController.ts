@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { LoggerService } from '../../core/services/loggerService'
 import { TelegramService } from '../../telegram/services/telegramService'
 import { GiftService } from '../../gifts/services/giftService'
-import { cryptoPayService } from '../services/cryptoPayService'
+// import { cryptoPayService } from '../services/cryptoPayService'
 import crypto from 'crypto'
 
 export class PaymentController {
@@ -51,15 +51,11 @@ export class PaymentController {
       }
 
       // Создаем инвойс через Crypto Pay
-      const invoice = await cryptoPayService.createInvoiceAsync({
-        amount: amount.toString(),
-        asset,
-        description: `Покупка подарка: ${giftName}`,
-        hidden_message: `Спасибо за покупку ${giftName}!`,
-        payload: JSON.stringify({ giftId, userId }),
-        paid_btn_name: 'viewItem',
-        paid_btn_url: `${process.env.WEBAPP_URL}/gifts/${giftId}`
-      } as CreateInvoiceParams)
+      const invoice = {
+       invoice_id: 1,
+        result: {mini_app_invoice_url: "https//:ya.ru"}
+      }
+
 
       this.p_logger.logInfo('Создан инвойс для покупки подарка', { 
         userId,

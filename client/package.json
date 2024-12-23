@@ -1,36 +1,31 @@
 {
-  "name": "gift-shop-client",
+  "name": "app",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.1",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@heroicons/vue": "^2.1.5",
-    "axios": "^1.6.7",
-    "gsap": "^3.12.5",
-    "pinia": "^2.1.7",
-    "socket.io-client": "^4.8.1",
-    "vite-svg-loader": "^5.1.0",
-    "vue": "^3.4.15",
-    "vue-i18n": "^10.0.4",
-    "vue-router": "^4.2.5",
-    "vue3-lottie": "^3.3.1"
+    "@telegram-apps/sdk-react": "^2.0.22",
+    "@telegram-apps/telegram-ui": "^2.1.8",
+    "eruda": "^3.4.1",
+    "next": "15.1.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.7",
-    "@tailwindcss/typography": "^0.5.10",
-    "@types/node": "^20.11.16",
-    "@vitejs/plugin-vue": "^5.0.3",
-    "@vue/compiler-sfc": "^3.4.15",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.2",
+    "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
-    "vite": "^5.4.10",
-    "vue-tsc": "^2.1.8"
+    "typescript": "^5"
   }
 }
