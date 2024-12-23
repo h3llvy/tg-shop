@@ -30,7 +30,7 @@ export default function ProductModal({setSelectedProduct, selectedProduct}) {
                     src={selectedProduct?.image}
                     style={{
                         display: "block",
-                        height: 260,
+                        height: 200,
                         objectFit: "cover",
                         width: 300,
                     }}

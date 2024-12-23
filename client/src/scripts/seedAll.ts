@@ -1,6 +1,5 @@
 import mongoose, {connect} from 'mongoose'
-import {config} from '../config'
-import Product from "../modules/database/models/Product";
+import Product from "@/entities/Product";
 
 async function seedAllAsync() {
     try {
@@ -189,4 +188,4 @@ async function seedAllAsync() {
     }
 }
 
-seedAllAsync() 
+seedAllAsync()

@@ -11,7 +11,7 @@ import {useCartStore, useTotalSumCart} from "@/state/cart_store";
 export function Nav() {
     const [openModal, setOpenModal] = useState(false)
     const cart = useCartStore(state => state.cart)
-    const products = useCartStore(state => state.products)
+    const products = useCartStore(state => state.originalProducts)
 
     const cartItems = Object.entries(cart).map(e => {
             const id = e[0];

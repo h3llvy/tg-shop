@@ -55,6 +55,7 @@ export function Root(props:any) {
 
   useEffect(() => {
     useCartStore.getState().init()
+    useCartStore.getState().setOriginalProducts(props.products)
     useCartStore.getState().setProducts(props.products)
   }, []);
 

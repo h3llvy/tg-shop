@@ -1,6 +1,6 @@
 import { connect } from 'mongoose'
 import { Order } from '../modules/database/models/Order'
-import { Gift } from '../modules/database/models/Gift'
+import { Gift } from '../modules/database/models/Order'
 import { User } from '../modules/database/models/User'
 import { config } from '../config'
 import { CryptoAsset } from '../modules/payment/types/payment'

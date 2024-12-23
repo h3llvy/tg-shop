@@ -1,5 +1,5 @@
 import type { IGift } from '../types/gift'
-import { Gift } from '../../database/models/Gift'
+import { Gift } from '../../database/models/Order'
 import { GiftHistory, GiftHistoryAction } from '../../database/models/GiftHistory'
 import { UserGift } from '../../database/models/UserGift'
 import { LoggerService } from '../../core/services/loggerService'

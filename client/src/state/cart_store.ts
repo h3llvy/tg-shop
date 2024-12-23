@@ -2,8 +2,9 @@ import {create} from 'zustand'
 
 export const useCartStore = create((set) => ({
     products: [],
+    originalProducts: [],
     cart: {},
-    init: () => set((state) => {
+    init: () => set(() => {
         return {cart: JSON.parse(localStorage.getItem('cart')) ?? {}}
     }),
     addItem: (id) => set((state) => {
@@ -58,6 +59,9 @@ export const useCartStore = create((set) => ({
     setProducts: (products) => set(() => {
         return {products: products}
     }),
+    setOriginalProducts: (products) => set(() => {
+        return {originalProducts: products}
+    }),
 }))
 
 export const useTotalCart = () => {
@@ -73,7 +77,7 @@ export const useTotalCart = () => {
 
 export const useTotalSumCart = () => {
     const cart = useCartStore(state => state.cart)
-    const products = useCartStore(state => state.products)
+    const products = useCartStore(state => state.originalProducts)
     let totalSum = 0;
     Object.keys(cart).forEach(id => {
         const product = products[id];

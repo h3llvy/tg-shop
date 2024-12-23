@@ -1,5 +1,5 @@
 import { connect } from 'mongoose'
-import { Gift } from '../modules/database/models/Gift'
+import { Gift } from '../modules/database/models/Order'
 import { GiftHistory, GiftHistoryAction } from '../modules/database/models/GiftHistory'
 import { config } from '../config'
 

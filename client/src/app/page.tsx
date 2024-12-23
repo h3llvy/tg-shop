@@ -1,45 +1,55 @@
 "use client"
-import React, {useRef, useState} from "react";
-import "./style.css"
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import "./style.css";
 import CatalogPage from "@/app/catalog/page";
 import {Input, Tappable} from "@telegram-apps/telegram-ui";
 import {Icon24Close} from "@telegram-apps/telegram-ui/dist/icons/24/close";
-
+import axios from "axios";
+import {useCartStore} from "@/state/cart_store";
+import IconMicrophone from "@/icons/IconMicrophone";
+import IconClose from "@/icons/IconClose";
+import {debounce} from "next/dist/server/utils";
+import {useDebouncedCallback} from "use-debounce";
 
 export default function Home() {
     const [value, setValue] = useState("");
     const [isRecording, setIsRecording] = useState(false);
-    const [audioBlob, setAudioBlob] = useState(null); // Store the recorded audio
-    const mediaRecorderRef = useRef(null);
-    const audioChunks = useRef([]); // Temporary storage for the audio data
-    const [audioUrl, setAudioUrl] = useState(null);
-    const streamRef = useRef(null); // Ref to store the microphone stream
+    const recognitionRef = useRef(null);
 
-    const startRecording = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        streamRef.current = stream;
+    const startRecording = () => {
+        if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+            alert("Ваш браузер не поддерживает распознавание речи.");
+            return;
+        }
 
-        mediaRecorderRef.current.ondataavailable = (event) => {
-            audioChunks.current.push(event.data); // Collect audio data
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.lang = "ru-RU"; // Установите нужный язык
+        recognitionRef.current.interimResults = false;
+
+        recognitionRef.current.onresult = (event) => {
+            const transcript = event.results[0][0].transcript; // Распознанный текст
+            setValue(transcript); // Установим значение в инпут
+            handleSearch(transcript); // Обновим список продуктов
         };
 
-        mediaRecorderRef.current.onstop = () => {
-            const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
-            setAudioBlob(audioBlob);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            setAudioUrl(audioUrl); // Create a URL for the audio
+        recognitionRef.current.onerror = (error) => {
+            console.error("Ошибка распознавания речи:", error);
         };
 
-        mediaRecorderRef.current.start();
+        recognitionRef.current.onend = () => {
+            setIsRecording(false);
+        };
+
+        recognitionRef.current.start();
         setIsRecording(true);
     };
 
     const stopRecording = () => {
-        mediaRecorderRef.current.stop();
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-        }        setIsRecording(false);
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            setIsRecording(false);
+        }
     };
 
     const toggleRecording = () => {
@@ -50,35 +60,39 @@ export default function Home() {
         }
     };
 
+    const handleSearch = useDebouncedCallback(async (searchQuery) => {
+        const response = await axios.get(`/api/all?searchQuery=${searchQuery}`);
+        useCartStore.getState().setProducts(response.data);
+    }, 200);
 
-    return <>
-        <div>
-            <Input
-                status="focused"
-                header="Input"
-                placeholder="Write and clean me"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                after={
-                    <Tappable
-                        Component="div"
-                        style={{display: 'flex'}}
-                        onClick={toggleRecording}
-                    >
-                        {isRecording ? <Icon24Close/> :
-                            <span>Record</span>} {/* Change text/icon depending on recording state */}
-                    </Tappable>
-                }
-            />
+    return (
+        <>
+            <div>
+                <Input
+                    status="focused"
+                    header="Input"
+                    placeholder="Write or speak your query"
+                    value={value}
+                    onChange={async (e) => {
+                        setValue(e.target.value);
+                        handleSearch(e.target.value);
+                    }}
+                    after={
+                        <Tappable
+                            Component="div"
+                            style={{display: "flex"}}
+                            onClick={toggleRecording}
+                        >
+                            {isRecording ? <IconClose/> : <IconMicrophone/>}
+                        </Tappable>
+                    }
+                />
 
-            {/* Display the recorded audio */}
-            {audioUrl && !isRecording && (
-                <div>
-                    <audio controls src={audioUrl}></audio>
-                </div>
-            )}
-        </div>
+                {/* Подсказка о записи */}
+                <div className='min-h-6 text-center'>{isRecording && '🎤 Слушаем вас...'}</div>
+            </div>
 
-        <CatalogPage/>
-    </>;
+            <CatalogPage/>
+        </>
+    );
 }

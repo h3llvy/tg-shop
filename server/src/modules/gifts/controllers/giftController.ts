@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import mongoose from 'mongoose'
-import { Gift } from '../../database/models/Gift'
+import { Gift } from '../../database/models/Order'
 import { LoggerService } from '../../core/services/loggerService'
 import { GiftService } from '../services/giftService'
 import { GiftHistoryService } from '../services/giftHistoryService'

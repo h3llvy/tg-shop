@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema({
   },
   products: {
     type: Map,
-    of: Number,
+    of: Number, // Количество каждого продукта
     required: true,
   },
   totalAmount: {
