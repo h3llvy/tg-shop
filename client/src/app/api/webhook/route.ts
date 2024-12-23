@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 const TG_TOKEN = process.env.TG_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TG_TOKEN}/`;
 
-export default async function POST(req: NextApiRequest) {
+export async function POST(req: NextApiRequest) {
     const body = await req.json();
 
     if (!body || !body.message || !body.message.text || !body.message.chat) {
