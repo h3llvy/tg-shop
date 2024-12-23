@@ -1,10 +1,11 @@
 import mongoose, {connect} from 'mongoose'
 import Product from "@/entities/Product";
+import db from "@/services/db";
 
 async function seedAllAsync() {
     try {
         console.log('Подключение к MongoDB...')
-        await connect(config.MONGODB_URI)
+        db.connect()
         console.log('✅ MongoDB подключена')
 
         const items = [
@@ -178,7 +179,7 @@ async function seedAllAsync() {
             }
         ];
 
-        await Product.deleteMany(items);
+        await Product.deleteMany();
         await Product.insertMany(items);
 
         console.log('✅ Все данные успешно добавлены')

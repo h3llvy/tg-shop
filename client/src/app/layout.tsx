@@ -6,6 +6,7 @@ import "@telegram-apps/telegram-ui/dist/styles.css";
 import "./_assets/globals.css";
 import {Nav} from "@/components/Nav";
 import ProductRepository from "@/services/ProductRepository";
+import seedAllAsync from "@/scripts/seedAll";
 
 export const metadata: Metadata = {
     title: "Your Application Title Goes Here",
@@ -15,7 +16,6 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({children}: PropsWithChildren) {
     const products = await ProductRepository.all()
-
     return (
         <html lang="ru">
         <body className="min-h-screen ">
