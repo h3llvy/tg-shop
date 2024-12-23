@@ -4,4 +4,10 @@
 
 body {
   background: var(--tg-theme-secondary-bg-color, white);
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and newer versions of Edge */
 }

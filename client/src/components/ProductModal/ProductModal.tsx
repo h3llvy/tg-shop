@@ -65,7 +65,7 @@ export default function ProductModal({setSelectedProduct, selectedProduct}) {
                     <Button
                         mode="filled"
                         size="s"
-                        style={{width: 140, marginBottom: lp.platform === "ios" ? "20px" : "0",}}
+                        style={{width: 140, marginBottom: lp.platform === "ios" ? "30px" : "0",}}
                         onClick={(e) => {
                             e.stopPropagation();
                             useCartStore.getState().addItem(selectedProduct.id)

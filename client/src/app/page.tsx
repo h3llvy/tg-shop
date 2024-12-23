@@ -70,8 +70,8 @@ export default function Home() {
             <div>
                 <Input
                     status="focused"
-                    header="Input"
-                    placeholder="Write or speak your query"
+                    header="Поиск"
+                    placeholder="Напишите или произнесите ваш запрос"
                     value={value}
                     onChange={async (e) => {
                         setValue(e.target.value);

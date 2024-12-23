@@ -93,7 +93,7 @@ export function Nav() {
                             fontSize: "1rem",
                             borderRadius: "8px",
                             marginTop: "16px",
-                            marginBottom: lp.platform === "ios" ? "20px" : "0",
+                            marginBottom: lp.platform === "ios" ? "30px" : "0",
                         }}
                         onClick={() => alert("Order placed!")}
                     >
@@ -104,7 +104,7 @@ export function Nav() {
             <Tabbar>
                 <Tabbar.Item
                     style={{
-                        marginBottom: lp.platform === "ios" ? "20px" : "0",
+                        marginBottom: lp.platform === "ios" ? "30px" : "0",
                     }}
                     selected={true}
                     text={`Корзина (${totalSum})`}
