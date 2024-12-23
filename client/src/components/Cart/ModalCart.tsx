@@ -125,7 +125,6 @@ export default function ModalCart({openModal, setOpenModal}) {
                     </Dialog.Description>
                 </VisuallyHidden>
                 <Input
-                    status="focused"
                     header="Телефон"
                     placeholder="Напишите ваш телефон"
                     value={value}
