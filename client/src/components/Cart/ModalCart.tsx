@@ -5,10 +5,11 @@ import {Button, Input, Modal, Tappable, VisuallyHidden} from "@telegram-apps/tel
 import {useCartItems, useCartStore, useTotalSumCart} from "@/state/cart_store";
 import * as Dialog from "@radix-ui/react-dialog";
 
-import React, {useState} from "react";
-import {useLaunchParams} from "@telegram-apps/sdk-react";
+import React, {useEffect, useState} from "react";
+import {initData, useLaunchParams, useSignal} from "@telegram-apps/sdk-react";
 import IconClose from "@/icons/IconClose";
 import IconMicrophone from "@/icons/IconMicrophone";
+import axios from "axios";
 
 export default function ModalCart({openModal, setOpenModal}) {
     const cartItems = useCartItems()
@@ -17,7 +18,12 @@ export default function ModalCart({openModal, setOpenModal}) {
     const lp = useLaunchParams();
 
     const [openOrderModal, setOpenOrderModal] = useState(false)
-    const [value, setValue] = useState('')
+    const [phone, setPhone] = useState('')
+
+
+    const initDataRaw = useSignal(initData.raw);
+
+    const orderDetails = {total: useTotalSumCart(), items: useCartItems()};
 
     return (
         <div>
@@ -50,7 +56,7 @@ export default function ModalCart({openModal, setOpenModal}) {
                     <div
                         style={{
                             display: "flex",
-                            justifyContent:  "space-between",
+                            justifyContent: "space-between",
                             padding: "16px 0",
                             fontWeight: "bold",
                             fontSize: "1.2rem",
@@ -114,9 +120,9 @@ export default function ModalCart({openModal, setOpenModal}) {
                 <Input
                     header="Телефон"
                     placeholder="Напишите ваш телефон"
-                    value={value}
+                    value={phone}
                     onChange={async (e) => {
-                        setValue(e.target.value);
+                        setPhone(e.target.value);
                     }}
                     className="my-40"
                 />
@@ -133,8 +139,13 @@ export default function ModalCart({openModal, setOpenModal}) {
                     }}
                     disabled={0 == parseInt(totalSum.replace(/\D/g, ''))}
 
-                    onClick={() => {
+                    onClick={async () => {
+                        axios.post('api/order', {
+                            initDataRaw, phone: phone, orderDetails: orderDetails
+                        }).then()
+
                         alert("Заказ оформлен!")
+
                         setOpenOrderModal(false)
                         setOpenModal(false)
                         useCartStore.getState().clear()

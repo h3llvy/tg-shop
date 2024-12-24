@@ -61,17 +61,6 @@ export default function Home() {
         }
     };
 
-    const initDataRaw = useSignal(initData.raw);
-
-    const orderDetails = {total: useTotalSumCart(), items: useCartItems()};
-    useEffect(() => {
-        console.log(initData)
-        console.log('asdasd')
-        axios.post('api/order', {
-            initDataRaw, phone: '123123', orderDetails: orderDetails
-        }).then(res => console.log(res))
-    }, []);
-
     const handleSearch = useDebouncedCallback(async (searchQuery) => {
         const response = await axios.get(`/api/all?searchQuery=${searchQuery}`);
         useCartStore.getState().setProducts(response.data);
