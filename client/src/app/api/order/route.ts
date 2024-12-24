@@ -27,8 +27,6 @@ export async function POST(req: NextApiRequest) {
         userNick: initData.user?.username,
     })
 
-    console.log(await Order.find())
-
     const orderMessage = `
 ${fullName}, оформлен новый заказ №${order.id}.
 

@@ -23,7 +23,7 @@ export async function POST(req: NextApiRequest) {
                 [
                     {
                         text: 'Открыть магазин',
-                        url: process.env.MINI_APP_URL
+                        web_app: {url: process.env.MINI_APP_URL}
                     },
                 ],
             ],
