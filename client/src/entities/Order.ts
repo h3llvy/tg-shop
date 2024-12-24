@@ -8,8 +8,7 @@ const orderSchema = new mongoose.Schema({
     default: 'pending',
   },
   products: {
-    type: Map,
-    of: Number, // Количество каждого продукта
+    type: Array,
     required: true,
   },
   totalAmount: {
@@ -34,6 +33,6 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default Order;
