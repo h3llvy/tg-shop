@@ -31,8 +31,10 @@ export async function POST(req: NextApiRequest) {
 
     const orderMessage = `
 ${fullName}, оформлен новый заказ №${order.id}.
-Товары: ${orderDetails.items.map(item => `${item.product.subtitle} - ${item.count} шт`).join(', ')}
-Общая сумма: ${orderDetails.total}
+
+Товары: ${orderDetails.items.map(item => `${item.product.subtitle} - ${item.count} шт`).join(', ')}.
+
+Общая сумма: ${orderDetails.total}.
 
 Наш менеджер скоро свяжется с вами!
         `;
